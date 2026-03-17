@@ -60,9 +60,11 @@ const formatCurrency = (n: number) => {
 // Check if product is "new" based on days
 const isNewProduct = (product: any, days: number | null) => {
   if (!days) return false;
-  const createdAt = product.created_at || product.first_seen_at || product.date_added;
-  if (!createdAt) return false;
-  const diff = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
+  const raw = product.created_at || product.first_seen_at || product.date_added;
+  if (!raw) return false;
+  // Force UTC parsing to avoid timezone mismatch
+  const createdAt = new Date(raw.includes("T") ? raw : raw.replace(" ", "T") + "Z");
+  const diff = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
   return diff <= days;
 };
 
