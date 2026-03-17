@@ -112,8 +112,9 @@ const Products = () => {
   const isFree      = plan === "free";
 
   // Apply time filter
-  const selectedFilterDays = selectedFilter?.days ?? null;
-  const filteredItems = selectedFilterDays
+  const selectedFilter = TIME_FILTERS.find(f => f.id === timeFilter);
+  const selectedFilterDays: number | null = selectedFilter?.days ?? null;
+  const filteredItems = selectedFilterDays !== null
   ? items.filter((p: any) => isNewProduct(p, selectedFilterDays))
   : items;
 
