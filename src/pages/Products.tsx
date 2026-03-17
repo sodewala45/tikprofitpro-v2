@@ -171,18 +171,36 @@ const Products = () => {
     }
   };
 
-  // ── Mock data for New Shops & Creators (replace with real API later) ──
-const { data: shopsData } = useQuery({
-  queryKey: ["shops"],
-  queryFn:  () => api.getShops(),
-});
-const shops = shopsData?.shops ?? mockNewShops;
+  // ── Mock data for New Shops & Creators (fallback) ──
+  const mockNewShops = [
+    { id:1, name:"TrendHaven Store",   category:"Fashion",    launched:"12 days ago", gmv:"$42K",  growth:"+340%", products:28, followers:"12.4K" },
+    { id:2, name:"GadgetPro USA",      category:"Electronics",launched:"28 days ago", gmv:"$89K",  growth:"+210%", products:45, followers:"34.2K" },
+    { id:3, name:"BeautyBliss Shop",   category:"Beauty",     launched:"5 days ago",  gmv:"$18K",  growth:"+520%", products:12, followers:"8.7K"  },
+    { id:4, name:"HomeEssentials USA", category:"Home",       launched:"45 days ago", gmv:"$127K", growth:"+180%", products:67, followers:"52.1K" },
+    { id:5, name:"FitLife Gear",       category:"Fitness",    launched:"20 days ago", gmv:"$63K",  growth:"+290%", products:33, followers:"21.8K" },
+    { id:6, name:"KidsWorld Shop",     category:"Kids",       launched:"8 days ago",  gmv:"$31K",  growth:"+410%", products:19, followers:"15.3K" },
+  ];
 
-const { data: creatorsData } = useQuery({
-  queryKey: ["creators"],
-  queryFn:  () => api.getCreators(),
-});
-const creators = creatorsData?.creators ?? mockCreators;
+  const mockCreators = [
+    { id:1, name:"@shopwithsarah",  type:"UGC",  followers:"234K", engagement:"8.4%", niche:"Beauty",     avgViews:"180K", aiContent:false, contact:"sarah@email.com" },
+    { id:2, name:"@aigadgetreviews",type:"AIGC", followers:"89K",  engagement:"12.1%",niche:"Electronics",avgViews:"340K", aiContent:true,  contact:"contact@aigadget.com" },
+    { id:3, name:"@tiktokfinds_usa",type:"UGC",  followers:"1.2M", engagement:"6.2%", niche:"General",    avgViews:"890K", aiContent:false, contact:"business@tiktokfinds.com" },
+    { id:4, name:"@aiproductpro",   type:"AIGC", followers:"156K", engagement:"15.3%",niche:"General",    avgViews:"520K", aiContent:true,  contact:"info@aiproductpro.com" },
+    { id:5, name:"@homewithemily",  type:"UGC",  followers:"445K", engagement:"7.8%", niche:"Home",       avgViews:"210K", aiContent:false, contact:"emily@homereviews.com" },
+    { id:6, name:"@fastshopai",     type:"AIGC", followers:"312K", engagement:"11.4%",niche:"Fashion",    avgViews:"430K", aiContent:true,  contact:"info@fastshopai.com" },
+  ];
+
+  const { data: shopsData } = useQuery({
+    queryKey: ["shops"],
+    queryFn:  () => api.getShops(),
+  });
+  const shops = shopsData?.shops ?? mockNewShops;
+
+  const { data: creatorsData } = useQuery({
+    queryKey: ["creators"],
+    queryFn:  () => api.getCreators(),
+  });
+  const creators = creatorsData?.creators ?? mockCreators;
 
   return (
     <div className="space-y-6 animate-slide-up pb-20 md:pb-6">
