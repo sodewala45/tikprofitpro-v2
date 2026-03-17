@@ -110,10 +110,10 @@ const Products = () => {
   const isFree      = plan === "free";
 
   // Apply time filter
-  const selectedFilter = TIME_FILTERS.find(f => f.id === timeFilter);
-  const filteredItems = selectedFilter?.days
-    ? items.filter((p: any) => isNewProduct(p, selectedFilter.days))
-    : items;
+  const selectedFilterDays = selectedFilter?.days ?? null;
+  const filteredItems = selectedFilterDays
+  ? items.filter((p: any) => isNewProduct(p, selectedFilterDays))
+  : items;
 
   // Apply sort
   const sortedItems = [...filteredItems].sort((a: any, b: any) => {
