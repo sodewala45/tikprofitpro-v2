@@ -36,6 +36,10 @@ export const api = {
   getSuppliers: (product_id: string, platform: string) =>
     apiFetch(`/products/${product_id}/suppliers/${platform}`),
   getCredits: () => apiFetch("/credits"),
+  getShops: (params?: Record<string, string>) =>
+    apiFetch(`/shops?${new URLSearchParams(params)}`),
+  getCreators: (params?: Record<string, string>) =>
+    apiFetch(`/creators?${new URLSearchParams(params)}`),
   createCheckout: async (plan: string) => {
     const { data: { session } } = await supabase.auth.getSession();
     const data = await apiFetch("/create-checkout", {

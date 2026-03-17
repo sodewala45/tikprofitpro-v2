@@ -590,7 +590,7 @@ const Products = () => {
 
           {/* Creators Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mockCreators.map(creator => (
+            {creators.map(creator => (
               <div key={creator.id}
                 className={`rounded-xl border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors ${
                   creator.aiContent ? "border-purple-500/25" : "border-border"
