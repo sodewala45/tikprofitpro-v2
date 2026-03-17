@@ -3,11 +3,7 @@ import { supabase } from "@/lib/supabase";
 const BASE_URL = "https://profitscout-production.up.railway.app";
 
 const API_KEY = "88f6c492c9fcde83687bce9d9cce0b03fdd5b84ca962de228e0dc4ad5d2bad20";
-getShops:    (params?: Record<string, string>) =>
-  apiFetch(`/shops?${new URLSearchParams(params)}`),
-getCreators: (params?: Record<string, string>) =>
-  apiFetch(`/creators?${new URLSearchParams(params)}`),
-  
+
 async function apiFetch(path: string, options?: RequestInit) {
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -40,6 +36,10 @@ export const api = {
   getSuppliers: (product_id: string, platform: string) =>
     apiFetch(`/products/${product_id}/suppliers/${platform}`),
   getCredits: () => apiFetch("/credits"),
+  getShops: (params?: Record<string, string>) =>
+    apiFetch(`/shops?${new URLSearchParams(params)}`),
+  getCreators: (params?: Record<string, string>) =>
+    apiFetch(`/creators?${new URLSearchParams(params)}`),
   createCheckout: async (plan: string) => {
     const { data: { session } } = await supabase.auth.getSession();
     const data = await apiFetch("/create-checkout", {
