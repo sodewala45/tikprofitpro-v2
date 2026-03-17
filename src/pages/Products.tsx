@@ -497,7 +497,7 @@ const Products = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mockNewShops.map(shop => (
+            {shops.map(shop => (
               <div key={shop.id} className="rounded-xl border border-border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors">
                 <div className="flex items-start justify-between">
                   <div>
