@@ -182,12 +182,12 @@ const Products = () => {
   ];
 
   const mockCreators = [
-    { id:1, name:"@shopwithsarah",  type:"UGC",  followers:"234K", engagement:"8.4%", niche:"Beauty",     avgViews:"180K", aiContent:false, contact:"sarah@email.com" },
-    { id:2, name:"@aigadgetreviews",type:"AIGC", followers:"89K",  engagement:"12.1%",niche:"Electronics",avgViews:"340K", aiContent:true,  contact:"contact@aigadget.com" },
-    { id:3, name:"@tiktokfinds_usa",type:"UGC",  followers:"1.2M", engagement:"6.2%", niche:"General",    avgViews:"890K", aiContent:false, contact:"business@tiktokfinds.com" },
-    { id:4, name:"@aiproductpro",   type:"AIGC", followers:"156K", engagement:"15.3%",niche:"General",    avgViews:"520K", aiContent:true,  contact:"info@aiproductpro.com" },
-    { id:5, name:"@homewithemily",  type:"UGC",  followers:"445K", engagement:"7.8%", niche:"Home",       avgViews:"210K", aiContent:false, contact:"emily@homereviews.com" },
-    { id:6, name:"@fastshopai",     type:"AIGC", followers:"312K", engagement:"11.4%",niche:"Fashion",    avgViews:"430K", aiContent:true,  contact:"info@fastshopai.com" },
+    { id:1, name:"@shopwithsarah",  type:"UGC",  followers:"234K", engagement:"8.4%", niche:"Beauty",     avg_views:"180K", aiContent:false, contact:"sarah@email.com" },
+    { id:2, name:"@aigadgetreviews",type:"AIGC", followers:"89K",  engagement:"12.1%",niche:"Electronics",avg_views:"340K", aiContent:true,  contact:"contact@aigadget.com" },
+    { id:3, name:"@tiktokfinds_usa",type:"UGC",  followers:"1.2M", engagement:"6.2%", niche:"General",    avg_views:"890K", aiContent:false, contact:"business@tiktokfinds.com" },
+    { id:4, name:"@aiproductpro",   type:"AIGC", followers:"156K", engagement:"15.3%",niche:"General",    avg_views:"520K", aiContent:true,  contact:"info@aiproductpro.com" },
+    { id:5, name:"@homewithemily",  type:"UGC",  followers:"445K", engagement:"7.8%", niche:"Home",       avg_views:"210K", aiContent:false, contact:"emily@homereviews.com" },
+    { id:6, name:"@fastshopai",     type:"AIGC", followers:"312K", engagement:"11.4%",niche:"Fashion",    avg_views:"430K", aiContent:true,  contact:"info@fastshopai.com" },
   ];
 
   const { data: shopsData } = useQuery({
@@ -620,7 +620,7 @@ const Products = () => {
                   </div>
                   <div className="text-center bg-muted/30 rounded-lg p-2">
                     <div className="text-muted-foreground mb-0.5">Avg Views</div>
-                    <div className="font-bold text-primary">{creator.avgViews}</div>
+                    <div className="font-bold text-primary">{creator.avg_views}</div>
                   </div>
                 </div>
 
