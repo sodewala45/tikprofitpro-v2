@@ -173,13 +173,13 @@ const Products = () => {
 
   // ── Mock data for New Shops & Creators (fallback) ──
   const mockNewShops = [
-    { id:1, name:"TrendHaven Store",   category:"Fashion",    launched:"12 days ago", gmv:"$42K",  growth:"+340%", products:28, followers:"12.4K" },
-    { id:2, name:"GadgetPro USA",      category:"Electronics",launched:"28 days ago", gmv:"$89K",  growth:"+210%", products:45, followers:"34.2K" },
-    { id:3, name:"BeautyBliss Shop",   category:"Beauty",     launched:"5 days ago",  gmv:"$18K",  growth:"+520%", products:12, followers:"8.7K"  },
-    { id:4, name:"HomeEssentials USA", category:"Home",       launched:"45 days ago", gmv:"$127K", growth:"+180%", products:67, followers:"52.1K" },
-    { id:5, name:"FitLife Gear",       category:"Fitness",    launched:"20 days ago", gmv:"$63K",  growth:"+290%", products:33, followers:"21.8K" },
-    { id:6, name:"KidsWorld Shop",     category:"Kids",       launched:"8 days ago",  gmv:"$31K",  growth:"+410%", products:19, followers:"15.3K" },
-  ];
+  {id:1, shop_name:"TrendHaven Store",   category:"Fashion",    created_at: new Date(Date.now()-12*86400000).toISOString(), gmv_total:42000,  gmv_growth_pct:340, product_count:28, follower_count:12400, shop_url:"https://tiktok.com/shop"},
+  {id:2, shop_name:"GadgetPro USA",      category:"Electronics",created_at: new Date(Date.now()-28*86400000).toISOString(), gmv_total:89000,  gmv_growth_pct:210, product_count:45, follower_count:34200, shop_url:"https://tiktok.com/shop"},
+  {id:3, shop_name:"BeautyBliss Shop",   category:"Beauty",     created_at: new Date(Date.now()-5*86400000).toISOString(),  gmv_total:18000,  gmv_growth_pct:520, product_count:12, follower_count:8700,  shop_url:"https://tiktok.com/shop"},
+  {id:4, shop_name:"HomeEssentials USA", category:"Home",       created_at: new Date(Date.now()-45*86400000).toISOString(), gmv_total:127000, gmv_growth_pct:180, product_count:67, follower_count:52100, shop_url:"https://tiktok.com/shop"},
+  {id:5, shop_name:"FitLife Gear",       category:"Fitness",    created_at: new Date(Date.now()-20*86400000).toISOString(), gmv_total:63000,  gmv_growth_pct:290, product_count:33, follower_count:21800, shop_url:"https://tiktok.com/shop"},
+  {id:6, shop_name:"KidsWorld Shop",     category:"Kids",       created_at: new Date(Date.now()-8*86400000).toISOString(),  gmv_total:31000,  gmv_growth_pct:410, product_count:19, follower_count:15300, shop_url:"https://tiktok.com/shop"},
+];
 
   const mockCreators = [
     { id:1, name:"@shopwithsarah",  type:"UGC",  followers:"234K", engagement:"8.4%", niche:"Beauty",     avg_views:"180K", aiContent:false, contact:"sarah@email.com" },
@@ -501,21 +501,21 @@ const Products = () => {
               <div key={shop.id} className="rounded-xl border border-border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors">
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="font-semibold text-sm">{shop.name}</div>
+                    <div className="font-semibold text-sm">{shop.shop_name}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">{shop.category}</div>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
-                    {shop.growth}
+                    {shop.gmv_growth_pct}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div className="text-center bg-muted/30 rounded-lg p-2">
                     <div className="text-muted-foreground mb-0.5">GMV</div>
-                    <div className="font-bold text-green-400">{shop.gmv}</div>
+                    <div className="font-bold text-green-400">{shop.gmv_total}</div>
                   </div>
                   <div className="text-center bg-muted/30 rounded-lg p-2">
                     <div className="text-muted-foreground mb-0.5">Products</div>
-                    <div className="font-bold">{shop.products}</div>
+                    <div className="font-bold">{shop.product_count}</div>
                   </div>
                   <div className="text-center bg-muted/30 rounded-lg p-2">
                     <div className="text-muted-foreground mb-0.5">Followers</div>
