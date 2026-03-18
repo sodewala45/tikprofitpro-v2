@@ -524,11 +524,18 @@ const Products = () => {
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Launched {shop.launched}</span>
-                  {isFree ? (
-                    <Link to="/pricing" className="text-primary hover:underline font-medium">View Shop →</Link>
-                  ) : (
-                    <button className="text-primary hover:underline font-medium">View Shop →</button>
-                  )}
+                 {isFree ? (
+  <Link to="/pricing" className="text-primary hover:underline font-medium text-xs">
+    View Shop →
+  </Link>
+) : shop.shop_url ? (
+  <a href={shop.shop_url} target="_blank" rel="noopener noreferrer"
+    className="text-primary hover:underline font-medium text-xs">
+    View Shop →
+  </a>
+) : (
+  <span className="text-muted-foreground text-xs">No URL yet</span>
+)}
                 </div>
               </div>
             ))}
