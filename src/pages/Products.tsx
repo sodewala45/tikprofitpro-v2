@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-
+const proxyImg = (url: string) =>
+  url ? `https://api.tikprofitpro.shop/proxy-image?url=${encodeURIComponent(url)}` : "";
 const phaseStyles: Record<string, string> = {
   hot:     "border-red-500/30 bg-red-500/10 text-red-400",
   rising:  "border-green-500/30 bg-green-500/10 text-green-400",
@@ -328,17 +329,37 @@ const Products = () => {
                         className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors cursor-pointer"
                         onClick={() => setSelectedProduct(product)}
                       >
-                        <td className="py-3 px-4 font-medium max-w-[200px]">
-                          <div className="flex items-center gap-2">
-                            {(isNewProduct(product, 7)) && (
-                              <span className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">NEW🔥</span>
-                            )}
-                            {(isNewProduct(product, 30) && !isNewProduct(product, 7)) && (
-                              <span className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">NEW⚡</span>
-                            )}
-                            <span className="truncate">{product.product_name}</span>
-                          </div>
-                        </td>
+                      <td className="py-3 px-4 font-medium max-w-[220px]">
+  <div className="flex items-center gap-2">
+    {product.thumbnail_url ? (
+      <img src={`https://api.tikprofitpro.shop/proxy-image?url=${encodeURIComponent(product.thumbnail_url)}`}
+        alt={product.product_name}
+        className="w-9 h-9 rounded-lg object-cover shrink-0 border border-border"
+        onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
+      />
+    ) : (
+      <div className="w-9 h-9 rounded-lg bg-muted/50 shrink-0 flex items-center justify-center text-sm border border-border">📦</div>
+    )}
+    <div className="min-w-0">
+      <div className="flex items-center gap-1 flex-wrap">
+        {isNewProduct(product, 7) && (
+          <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">🔥NEW</span>
+        )}
+        {isNewProduct(product, 30) && !isNewProduct(product, 7) && (
+          <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">⚡NEW</span>
+        )}
+      </div>
+      <span className="truncate block text-sm">{product.product_name}</span>
+    </div>
+  </div>
+</td>
+```
+
+---
+
+## Commit Message
+```
+feat: add product thumbnail images to table rows
                         <td className="py-3 px-4 text-muted-foreground text-xs max-w-[100px] truncate">{product.category}</td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
@@ -783,7 +804,7 @@ const Products = () => {
             <div className="flex items-start justify-between p-4 md:p-6 border-b border-border sticky top-0 bg-card z-10">
               <div className="flex gap-3 md:gap-4 min-w-0">
                 {selectedProduct.thumbnail_url && (
-                  <img src={selectedProduct.thumbnail_url} alt={selectedProduct.product_name}
+                  <img src={`https://api.tikprofitpro.shop/proxy-image?url=${encodeURIComponent(selectedProduct.thumbnail_url || '')}`} alt={selectedProduct.product_name}
                     className="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shrink-0" />
                 )}
                 <div className="min-w-0">
