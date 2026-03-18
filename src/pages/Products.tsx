@@ -11,8 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 
-const proxyImg = (url: string) =>
-  url ? `https://api.tikprofitpro.shop/proxy-image?url=${encodeURIComponent(url)}` : "";
 
 const phaseStyles: Record<string, string> = {
   hot:     "border-red-500/30 bg-red-500/10 text-red-400",
@@ -294,7 +292,7 @@ const Products = () => {
                         <td className="py-2 px-4 font-medium max-w-[240px]">
                           <div className="flex items-center gap-2">
                             {product.thumbnail_url ? (
-                              <img src={proxyImg(product.thumbnail_url)}
+                              <img src={product.thumbnail_url}
                                 alt={product.product_name}
                                 className="w-9 h-9 rounded-lg object-cover shrink-0 border border-border"
                                 onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
@@ -370,7 +368,7 @@ const Products = () => {
                     onClick={() => setSelectedProduct(product)}>
                     <div className="flex items-start gap-3">
                       {product.thumbnail_url ? (
-                        <img src={proxyImg(product.thumbnail_url)} alt={product.product_name}
+                        <img src={product.thumbnail_url} alt={product.product_name}
                           className="w-12 h-12 rounded-lg object-cover shrink-0 border border-border"
                           onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
                       ) : (
@@ -653,7 +651,7 @@ const Products = () => {
             <div className="flex items-start justify-between p-4 md:p-6 border-b border-border sticky top-0 bg-card z-10">
               <div className="flex gap-3 md:gap-4 min-w-0">
                 {selectedProduct.thumbnail_url && (
-                  <img src={proxyImg(selectedProduct.thumbnail_url)} alt={selectedProduct.product_name}
+                  <img src={selectedProduct.thumbnail_url} alt={selectedProduct.product_name}
                     className="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shrink-0"
                     onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
                 )}
