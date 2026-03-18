@@ -593,7 +593,7 @@ const Products = () => {
             {creators.map(creator => (
               <div key={creator.id}
                 className={`rounded-xl border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors ${
-                  creator.aiContent ? "border-purple-500/25" : "border-border"
+                  creator.ai_content ? "border-purple-500/25" : "border-border"
                 }`}>
                 <div className="flex items-start justify-between">
                   <div>
@@ -601,11 +601,11 @@ const Products = () => {
                     <div className="text-xs text-muted-foreground">{creator.niche}</div>
                   </div>
                   <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${
-                    creator.type === "AIGC"
+                    creator.creator_type === "AIGC"
                       ? "bg-purple-500/15 text-purple-400 border-purple-500/25"
                       : "bg-blue-500/15 text-blue-400 border-blue-500/25"
                   }`}>
-                    {creator.type}
+                    {creator.creator_type}
                   </span>
                 </div>
 
@@ -616,7 +616,7 @@ const Products = () => {
                   </div>
                   <div className="text-center bg-muted/30 rounded-lg p-2">
                     <div className="text-muted-foreground mb-0.5">Engagement</div>
-                    <div className="font-bold text-green-400">{creator.engagement}</div>
+                    <div className="font-bold text-green-400">{creator.engagement_rate}</div>
                   </div>
                   <div className="text-center bg-muted/30 rounded-lg p-2">
                     <div className="text-muted-foreground mb-0.5">Avg Views</div>
