@@ -173,8 +173,8 @@ const Products = () => {
 
   // ── Mock data for New Shops & Creators (fallback) ──
   const mockNewShops = [
-  {id:1, shop_name:"TrendHaven Store",   category:"Fashion",    created_at: new Date(Date.now()-12*86400000).toISOString(), gmv_total:42000,  gmv_growth_pct:340, product_count:28, follower_count:12400, shop_url:"https://tiktok.com/shop"},
-  {id:2, shop_name:"GadgetPro USA",      category:"Electronics",created_at: new Date(Date.now()-28*86400000).toISOString(), gmv_total:89000,  gmv_growth_pct:210, product_count:45, follower_count:34200, shop_url:"https://tiktok.com/shop"},
+  {id:1, shop_name:"TrendHaven Store",   category:"Fashion",    created_at: new Date(Date.now()-12*86400000).toISOString(), gmv_total:42000,  gmv_growth_pct:340, product_count:28, followers_count:12400, shop_url:"https://tiktok.com/shop"},
+  {id:2, shop_name:"GadgetPro USA",      category:"Electronics",created_at: new Date(Date.now()-28*86400000).toISOString(), gmv_total:89000,  gmv_growth_pct:210, product_count:45, followers_count:34200, shop_url:"https://tiktok.com/shop"},
   {id:3, shop_name:"BeautyBliss Shop",   category:"Beauty",     created_at: new Date(Date.now()-5*86400000).toISOString(),  gmv_total:18000,  gmv_growth_pct:520, product_count:12, follower_count:8700,  shop_url:"https://tiktok.com/shop"},
   {id:4, shop_name:"HomeEssentials USA", category:"Home",       created_at: new Date(Date.now()-45*86400000).toISOString(), gmv_total:127000, gmv_growth_pct:180, product_count:67, follower_count:52100, shop_url:"https://tiktok.com/shop"},
   {id:5, shop_name:"FitLife Gear",       category:"Fitness",    created_at: new Date(Date.now()-20*86400000).toISOString(), gmv_total:63000,  gmv_growth_pct:290, product_count:33, follower_count:21800, shop_url:"https://tiktok.com/shop"},
