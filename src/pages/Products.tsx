@@ -640,7 +640,7 @@ const Products = () => {
                       </button>
                     </Link>
                   ) : (
-                    <a href={`mailto:${creator.contact}`}
+                    <a href={`mailto:${creator.contact_email}`}
                       className="block w-full text-center px-3 py-2 rounded-lg border border-primary/30 bg-primary/10 text-xs text-primary hover:bg-primary/20 transition-colors min-h-[44px] flex items-center justify-center">
                       Contact Creator →
                     </a>
