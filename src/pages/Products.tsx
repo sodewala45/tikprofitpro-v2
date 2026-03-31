@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Loader2, X, TrendingUp, ShoppingCart, Users, Star,
-  Factory, Lock, ChevronLeft, ChevronRight, Play, Eye,
+  Factory, Lock, ChevronLeft, ChevronRight, Eye,
   DollarSign, Zap, Clock, Store, Video, UserCheck
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -79,6 +79,7 @@ const Products = () => {
   const [supplierResults, setSupplierResults] = useState<any[] | null>(null);
   const [supplierLoading, setSupplierLoading] = useState(false);
   const [supplierError,   setSupplierError]   = useState<string | null>(null);
+  const [imageModal,      setImageModal]      = useState<any>(null);
 
   const ITEMS_PER_PAGE = 15;
 
@@ -280,7 +281,7 @@ const Products = () => {
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">GMV 7d</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Views</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Ad Spend</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Video</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Image</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Supplier</th>
                     </tr>
                   </thead>
@@ -332,12 +333,12 @@ const Products = () => {
                           {product.ad_spend && product.ad_spend > 0 ? formatCurrency(product.ad_spend) : <span className="opacity-30">N/A</span>}
                         </td>
                         <td className="py-2 px-4">
-                          {product.video_url || product.tiktok_video_url ? (
-                            <a href={product.video_url || product.tiktok_video_url} target="_blank" rel="noopener noreferrer"
-                              onClick={e => e.stopPropagation()}
+                          {product.thumbnail_url ? (
+                            <button
+                              onClick={e => { e.stopPropagation(); setImageModal(product); }}
                               className="flex items-center gap-1 text-xs text-primary hover:underline">
-                              <Play className="h-3 w-3" /> Watch
-                            </a>
+                              <Eye className="h-3 w-3" /> Image
+                            </button>
                           ) : (
                             <span className="text-xs opacity-30">—</span>
                           )}
@@ -399,12 +400,12 @@ const Products = () => {
                         onClick={(e) => handleFindSupplier(product, e)}>
                         <Factory className="h-3 w-3 mr-1" /> Find Supplier
                       </Button>
-                      {(product.video_url || product.tiktok_video_url) && (
-                        <a href={product.video_url || product.tiktok_video_url} target="_blank" rel="noopener noreferrer"
-                          onClick={e => e.stopPropagation()}
+                      {product.thumbnail_url && (
+                        <button
+                          onClick={e => { e.stopPropagation(); setImageModal(product); }}
                           className="flex items-center justify-center gap-1 px-3 border border-border rounded-md text-xs text-muted-foreground hover:text-foreground min-h-[44px]">
-                          <Play className="h-3 w-3" /> Video
-                        </a>
+                          <Eye className="h-3 w-3" /> Image
+                        </button>
                       )}
                     </div>
                   </div>
@@ -694,11 +695,12 @@ const Products = () => {
                   View on TikTok Shop
                 </a>
               )}
-              {(selectedProduct.video_url || selectedProduct.tiktok_video_url) && (
-                <a href={selectedProduct.video_url || selectedProduct.tiktok_video_url} target="_blank" rel="noopener noreferrer"
+              {selectedProduct.thumbnail_url && (
+                <button
+                  onClick={() => setImageModal(selectedProduct)}
                   className="flex-1 border border-primary/30 text-primary rounded-lg py-3 text-sm font-medium text-center hover:bg-primary/10 min-h-[44px] flex items-center justify-center gap-2">
-                  <Play className="h-4 w-4" /> Watch Video
-                </a>
+                  <Eye className="h-4 w-4" /> View Image
+                </button>
               )}
               <button className="flex-1 border border-border rounded-lg py-3 text-sm font-medium hover:bg-muted/30 min-h-[44px]"
                 onClick={() => handleFindSupplier(selectedProduct, { stopPropagation: () => {} } as any)}>
@@ -708,6 +710,46 @@ const Products = () => {
           </div>
         </div>
       )}
+
+      {/* ══ IMAGE MODAL ══ */}
+      {imageModal && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setImageModal(null)}>
+          <div
+            className="bg-card border border-border rounded-2xl w-full max-w-md overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <p className="text-sm font-medium truncate pr-4">{imageModal.product_name}</p>
+              <button
+                onClick={() => setImageModal(null)}
+                className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <img
+                src={imageModal.thumbnail_url}
+                alt={imageModal.product_name}
+                className="w-full rounded-xl object-contain max-h-[60vh] bg-muted/30"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).alt = "Image not available";
+                }}
+              />
+              {imageModal.tiktok_product_url && (
+                <a
+                  href={imageModal.tiktok_product_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-primary text-primary-foreground rounded-lg py-3 text-sm font-medium text-center hover:opacity-90 min-h-[44px] flex items-center justify-center">
+                  View on TikTok Shop →
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
