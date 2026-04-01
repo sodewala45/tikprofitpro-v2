@@ -185,7 +185,7 @@ const Products = () => {
     { id:6, username:"@fastshopai",      creator_type:"AIGC", followers:312000,  engagement_rate:11.4, avg_views:430000, niche:"Fashion",     contact_email:"info@fastshopai.com",   ai_content:true,  gmv_total:421000, live_gmv:0,      video_gmv:398000, products_promoted:112, conversion_rate:9.7  },
   ];
 
-  const { data: shopsData }    = useQuery({ queryKey: ["shops"],    queryFn: () => api.getShops()    });
+  const { data: shopsData }    = useQuery({ queryKey: ["shops"],    queryFn: () => api.getShops({ limit: "50", sort_by: "gmv_total" })    });
   const { data: creatorsData } = useQuery({ queryKey: ["creators"], queryFn: () => api.getCreators() });
   const shops    = shopsData?.shops       ?? mockNewShops;
   const creators = creatorsData?.creators ?? mockCreators;
