@@ -168,12 +168,12 @@ const Products = () => {
   };
 
   const mockNewShops = [
-    {id:1, shop_name:"TrendHaven Store",   category:"Fashion",     created_at: new Date(Date.now()-12*86400000).toISOString(), gmv_total:42000,  gmv_growth_pct:340, product_count:28, follower_count:12400, shop_url:"https://tiktok.com/shop"},
-    {id:2, shop_name:"GadgetPro USA",      category:"Electronics", created_at: new Date(Date.now()-28*86400000).toISOString(), gmv_total:89000,  gmv_growth_pct:210, product_count:45, follower_count:34200, shop_url:"https://tiktok.com/shop"},
-    {id:3, shop_name:"BeautyBliss Shop",   category:"Beauty",      created_at: new Date(Date.now()-5*86400000).toISOString(),  gmv_total:18000,  gmv_growth_pct:520, product_count:12, follower_count:8700,  shop_url:"https://tiktok.com/shop"},
-    {id:4, shop_name:"HomeEssentials USA", category:"Home",        created_at: new Date(Date.now()-45*86400000).toISOString(), gmv_total:127000, gmv_growth_pct:180, product_count:67, follower_count:52100, shop_url:"https://tiktok.com/shop"},
-    {id:5, shop_name:"FitLife Gear",       category:"Fitness",     created_at: new Date(Date.now()-20*86400000).toISOString(), gmv_total:63000,  gmv_growth_pct:290, product_count:33, follower_count:21800, shop_url:"https://tiktok.com/shop"},
-    {id:6, shop_name:"KidsWorld Shop",     category:"Kids",        created_at: new Date(Date.now()-8*86400000).toISOString(),  gmv_total:31000,  gmv_growth_pct:410, product_count:19, follower_count:15300, shop_url:"https://tiktok.com/shop"},
+    {id:1, shop_name:"TrendHaven Store",   seller_type:"Brand", created_at: new Date(Date.now()-12*86400000).toISOString(), gmv_total:42000,  gmv_growth_pct:340, item_sold:1240, avg_unit_price:33.87, live_revenue:8200, video_revenue:18500, product_card_revenue:6300, self_operated_revenue:12000, affiliate_revenue:15000, shopping_mall_revenue:5500, shop_url:"https://tiktok.com/shop"},
+    {id:2, shop_name:"GadgetPro USA",      seller_type:"Distributor", created_at: new Date(Date.now()-28*86400000).toISOString(), gmv_total:89000,  gmv_growth_pct:210, item_sold:3200, avg_unit_price:27.81, live_revenue:22000, video_revenue:31000, product_card_revenue:12000, self_operated_revenue:28000, affiliate_revenue:35000, shopping_mall_revenue:14000, shop_url:"https://tiktok.com/shop"},
+    {id:3, shop_name:"BeautyBliss Shop",   seller_type:"Brand", created_at: new Date(Date.now()-5*86400000).toISOString(),  gmv_total:18000,  gmv_growth_pct:520, item_sold:680, avg_unit_price:26.47, live_revenue:4200, video_revenue:7800, product_card_revenue:2100, self_operated_revenue:6500, affiliate_revenue:8000, shopping_mall_revenue:1500, shop_url:"https://tiktok.com/shop"},
+    {id:4, shop_name:"HomeEssentials USA", seller_type:"Marketplace", created_at: new Date(Date.now()-45*86400000).toISOString(), gmv_total:127000, gmv_growth_pct:180, item_sold:4800, avg_unit_price:26.46, live_revenue:32000, video_revenue:42000, product_card_revenue:18000, self_operated_revenue:38000, affiliate_revenue:52000, shopping_mall_revenue:17000, shop_url:"https://tiktok.com/shop"},
+    {id:5, shop_name:"FitLife Gear",       seller_type:"Brand", created_at: new Date(Date.now()-20*86400000).toISOString(), gmv_total:63000,  gmv_growth_pct:290, item_sold:2100, avg_unit_price:30.00, live_revenue:14000, video_revenue:22000, product_card_revenue:9000, self_operated_revenue:18000, affiliate_revenue:25000, shopping_mall_revenue:10000, shop_url:"https://tiktok.com/shop"},
+    {id:6, shop_name:"KidsWorld Shop",     seller_type:"Distributor", created_at: new Date(Date.now()-8*86400000).toISOString(),  gmv_total:31000,  gmv_growth_pct:410, item_sold:920, avg_unit_price:33.70, live_revenue:7200, video_revenue:11000, product_card_revenue:4800, self_operated_revenue:9500, affiliate_revenue:12500, shopping_mall_revenue:4000, shop_url:"https://tiktok.com/shop"},
   ];
 
   const mockCreators = [
@@ -449,44 +449,50 @@ const Products = () => {
               ))}
             </div>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {shops.map(shop => (
-              <div key={shop.id} className="rounded-xl border border-border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-semibold text-sm">{shop.shop_name}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{shop.category}</div>
-                  </div>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
-                    +{shop.gmv_growth_pct}%
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div className="text-center bg-muted/30 rounded-lg p-2">
-                    <div className="text-muted-foreground mb-0.5">GMV</div>
-                    <div className="font-bold text-green-400">{formatCurrency(shop.gmv_total)}</div>
-                  </div>
-                  <div className="text-center bg-muted/30 rounded-lg p-2">
-                    <div className="text-muted-foreground mb-0.5">Products</div>
-                    <div className="font-bold">{shop.product_count}</div>
-                  </div>
-                  <div className="text-center bg-muted/30 rounded-lg p-2">
-                    <div className="text-muted-foreground mb-0.5">Followers</div>
-                    <div className="font-bold">{shop.follower_count?.toLocaleString() ?? "—"}</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {shop.created_at ? new Date(shop.created_at).toLocaleDateString() : "—"}</span>
-                  {isFree ? (
-                    <Link to="/pricing" className="text-primary hover:underline font-medium text-xs">View Shop →</Link>
-                  ) : shop.shop_url ? (
-                    <a href={shop.shop_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium text-xs">View Shop →</a>
-                  ) : (
-                    <span className="opacity-40 text-xs">No URL yet</span>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="rounded-xl border border-border overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/30">
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Shop Name</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Seller Type</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Item Sold</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Avg. Unit Price($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Live Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Video Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Product Card Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Self-Operated Account Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Affiliate Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Shopping Mall Revenue($)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shops.map(shop => (
+                    <tr key={shop.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                      <td className="py-2 px-4 font-medium whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span>{shop.shop_name}</span>
+                          {shop.gmv_growth_pct > 300 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">+{shop.gmv_growth_pct}%</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2 px-4 whitespace-nowrap">{shop.seller_type ?? "—"}</td>
+                      <td className="py-2 px-4 whitespace-nowrap text-green-400 font-semibold">{formatCurrency(shop.gmv_total)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatNumber(shop.item_sold ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">${(shop.avg_unit_price ?? 0).toFixed(2)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.live_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.video_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.product_card_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.self_operated_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.affiliate_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.shopping_mall_revenue ?? 0)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
           {isFree && (
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-center space-y-3">
