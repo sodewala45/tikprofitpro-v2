@@ -449,44 +449,50 @@ const Products = () => {
               ))}
             </div>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {shops.map(shop => (
-              <div key={shop.id} className="rounded-xl border border-border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-semibold text-sm">{shop.shop_name}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{shop.category}</div>
-                  </div>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
-                    +{shop.gmv_growth_pct}%
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div className="text-center bg-muted/30 rounded-lg p-2">
-                    <div className="text-muted-foreground mb-0.5">GMV</div>
-                    <div className="font-bold text-green-400">{formatCurrency(shop.gmv_total)}</div>
-                  </div>
-                  <div className="text-center bg-muted/30 rounded-lg p-2">
-                    <div className="text-muted-foreground mb-0.5">Products</div>
-                    <div className="font-bold">{shop.product_count}</div>
-                  </div>
-                  <div className="text-center bg-muted/30 rounded-lg p-2">
-                    <div className="text-muted-foreground mb-0.5">Followers</div>
-                    <div className="font-bold">{shop.follower_count?.toLocaleString() ?? "—"}</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {shop.created_at ? new Date(shop.created_at).toLocaleDateString() : "—"}</span>
-                  {isFree ? (
-                    <Link to="/pricing" className="text-primary hover:underline font-medium text-xs">View Shop →</Link>
-                  ) : shop.shop_url ? (
-                    <a href={shop.shop_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium text-xs">View Shop →</a>
-                  ) : (
-                    <span className="opacity-40 text-xs">No URL yet</span>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="rounded-xl border border-border overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/30">
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Shop Name</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Seller Type</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Item Sold</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Avg. Unit Price($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Live Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Video Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Product Card Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Self-Operated Account Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Affiliate Revenue($)</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Shopping Mall Revenue($)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shops.map(shop => (
+                    <tr key={shop.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                      <td className="py-2 px-4 font-medium whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span>{shop.shop_name}</span>
+                          {shop.gmv_growth_pct > 300 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">+{shop.gmv_growth_pct}%</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2 px-4 whitespace-nowrap">{shop.seller_type ?? "—"}</td>
+                      <td className="py-2 px-4 whitespace-nowrap text-green-400 font-semibold">{formatCurrency(shop.gmv_total)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatNumber(shop.item_sold ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">${(shop.avg_unit_price ?? 0).toFixed(2)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.live_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.video_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.product_card_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.self_operated_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.affiliate_revenue ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.shopping_mall_revenue ?? 0)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
           {isFree && (
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-center space-y-3">
