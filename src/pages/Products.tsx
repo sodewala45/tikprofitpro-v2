@@ -177,15 +177,15 @@ const Products = () => {
   ];
 
   const mockCreators = [
-    { id:1, username:"@shopwithsarah",   creator_type:"UGC",  followers:234000,  engagement_rate:8.4,  avg_views:180000, niche:"Beauty",      contact_email:"sarah@email.com",        ai_content:false },
-    { id:2, username:"@aigadgetreviews", creator_type:"AIGC", followers:89000,   engagement_rate:12.1, avg_views:340000, niche:"Electronics", contact_email:"contact@aigadget.com",   ai_content:true  },
-    { id:3, username:"@tiktokfinds_usa", creator_type:"UGC",  followers:1200000, engagement_rate:6.2,  avg_views:890000, niche:"General",     contact_email:"biz@tiktokfinds.com",    ai_content:false },
-    { id:4, username:"@aiproductpro",    creator_type:"AIGC", followers:156000,  engagement_rate:15.3, avg_views:520000, niche:"General",     contact_email:"info@aiproductpro.com",  ai_content:true  },
-    { id:5, username:"@homewithemily",   creator_type:"UGC",  followers:445000,  engagement_rate:7.8,  avg_views:210000, niche:"Home",        contact_email:"emily@homereviews.com",  ai_content:false },
-    { id:6, username:"@fastshopai",      creator_type:"AIGC", followers:312000,  engagement_rate:11.4, avg_views:430000, niche:"Fashion",     contact_email:"info@fastshopai.com",    ai_content:true  },
+    { id:1, username:"@shopwithsarah",   creator_type:"UGC",  followers:234000,  engagement_rate:8.4,  avg_views:180000, niche:"Beauty",      contact_email:"sarah@email.com",       ai_content:false, gmv_total:67000,  live_gmv:12000,  video_gmv:48000,  products_promoted:23,  conversion_rate:6.8  },
+    { id:2, username:"@aigadgetreviews", creator_type:"AIGC", followers:89000,   engagement_rate:12.1, avg_views:340000, niche:"Electronics", contact_email:"contact@aigadget.com",  ai_content:true,  gmv_total:198000, live_gmv:0,      video_gmv:178000, products_promoted:61,  conversion_rate:8.1  },
+    { id:3, username:"@tiktokfinds_usa", creator_type:"UGC",  followers:1200000, engagement_rate:6.2,  avg_views:890000, niche:"General",     contact_email:"biz@tiktokfinds.com",   ai_content:false, gmv_total:284000, live_gmv:142000, video_gmv:98000,  products_promoted:47,  conversion_rate:4.2  },
+    { id:4, username:"@aiproductpro",    creator_type:"AIGC", followers:156000,  engagement_rate:15.3, avg_views:520000, niche:"General",     contact_email:"info@aiproductpro.com", ai_content:true,  gmv_total:312000, live_gmv:0,      video_gmv:287000, products_promoted:89,  conversion_rate:11.2 },
+    { id:5, username:"@homewithemily",   creator_type:"UGC",  followers:445000,  engagement_rate:7.8,  avg_views:210000, niche:"Home",        contact_email:"emily@homereviews.com", ai_content:false, gmv_total:94000,  live_gmv:38000,  video_gmv:51000,  products_promoted:31,  conversion_rate:5.4  },
+    { id:6, username:"@fastshopai",      creator_type:"AIGC", followers:312000,  engagement_rate:11.4, avg_views:430000, niche:"Fashion",     contact_email:"info@fastshopai.com",   ai_content:true,  gmv_total:421000, live_gmv:0,      video_gmv:398000, products_promoted:112, conversion_rate:9.7  },
   ];
 
-  const { data: shopsData }    = useQuery({ queryKey: ["shops"],    queryFn: () => api.getShops()    });
+  const { data: shopsData }    = useQuery({ queryKey: ["shops"],    queryFn: () => api.getShops({ limit: "50", sort_by: "gmv_total" })    });
   const { data: creatorsData } = useQuery({ queryKey: ["creators"], queryFn: () => api.getCreators() });
   const shops    = shopsData?.shops       ?? mockNewShops;
   const creators = creatorsData?.creators ?? mockCreators;
@@ -526,6 +526,8 @@ const Products = () => {
             {creators.map(creator => (
               <div key={creator.id}
                 className={`rounded-xl border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors ${creator.ai_content ? "border-purple-500/25" : "border-border"}`}>
+
+                {/* Header */}
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="font-semibold text-sm">{creator.username}</div>
@@ -535,16 +537,72 @@ const Products = () => {
                     creator.creator_type === "AIGC" ? "bg-purple-500/15 text-purple-400 border-purple-500/25" : "bg-blue-500/15 text-blue-400 border-blue-500/25"
                   }`}>{creator.creator_type}</span>
                 </div>
+
+                {/* Audience row */}
                 <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div className="text-center bg-muted/30 rounded-lg p-2"><div className="text-muted-foreground mb-0.5">Followers</div><div className="font-bold">{formatNumber(creator.followers)}</div></div>
-                  <div className="text-center bg-muted/30 rounded-lg p-2"><div className="text-muted-foreground mb-0.5">Engagement</div><div className="font-bold text-green-400">{creator.engagement_rate}%</div></div>
-                  <div className="text-center bg-muted/30 rounded-lg p-2"><div className="text-muted-foreground mb-0.5">Avg Views</div><div className="font-bold text-primary">{formatNumber(creator.avg_views)}</div></div>
+                  <div className="text-center bg-muted/30 rounded-lg p-2">
+                    <div className="text-muted-foreground mb-0.5">Followers</div>
+                    <div className="font-bold">{formatNumber(creator.followers)}</div>
+                  </div>
+                  <div className="text-center bg-muted/30 rounded-lg p-2">
+                    <div className="text-muted-foreground mb-0.5">Engagement</div>
+                    <div className="font-bold text-green-400">{creator.engagement_rate}%</div>
+                  </div>
+                  <div className="text-center bg-muted/30 rounded-lg p-2">
+                    <div className="text-muted-foreground mb-0.5">Avg Views</div>
+                    <div className="font-bold text-primary">{formatNumber(creator.avg_views)}</div>
+                  </div>
                 </div>
+
+                {/* GMV divider */}
+                <div className="border-t border-border pt-2">
+                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Revenue Performance</div>
+
+                  {/* GMV Total — hero stat */}
+                  <div className="flex items-center justify-between bg-green-500/8 border border-green-500/20 rounded-lg px-3 py-2 mb-2">
+                    <span className="text-xs text-muted-foreground">Total GMV</span>
+                    <span className="text-sm font-bold text-green-400">{formatCurrency(creator.gmv_total ?? 0)}</span>
+                  </div>
+
+                  {/* Live GMV + Video GMV */}
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                    <div className="bg-muted/30 rounded-lg p-2">
+                      <div className="text-muted-foreground mb-0.5 flex items-center gap-1">
+                        🔴 Live GMV
+                      </div>
+                      <div className={`font-bold ${(creator.live_gmv ?? 0) > 0 ? "text-red-400" : "text-muted-foreground opacity-40"}`}>
+                        {(creator.live_gmv ?? 0) > 0 ? formatCurrency(creator.live_gmv) : "—"}
+                      </div>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg p-2">
+                      <div className="text-muted-foreground mb-0.5 flex items-center gap-1">
+                        🎬 Video GMV
+                      </div>
+                      <div className="font-bold text-blue-400">{formatCurrency(creator.video_gmv ?? 0)}</div>
+                    </div>
+                  </div>
+
+                  {/* Products + Conversion */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-muted/30 rounded-lg p-2">
+                      <div className="text-muted-foreground mb-0.5">Products</div>
+                      <div className="font-bold text-amber-400">{creator.products_promoted ?? 0}</div>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg p-2">
+                      <div className="text-muted-foreground mb-0.5">Conv. Rate</div>
+                      <div className="font-bold text-primary">{creator.conversion_rate ?? 0}%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI badge */}
                 {creator.ai_content && (
                   <div className="flex items-center gap-1.5 text-xs text-purple-400 bg-purple-500/10 rounded-lg px-2 py-1.5 border border-purple-500/20">
                     <Zap className="h-3 w-3" /> Makes AI Shoppable Videos
                   </div>
                 )}
+
+                {/* CTA */}
                 <div className="pt-1">
                   {isFree ? (
                     <Link to="/pricing" className="block w-full">
@@ -560,6 +618,7 @@ const Products = () => {
                     </a>
                   )}
                 </div>
+
               </div>
             ))}
           </div>
