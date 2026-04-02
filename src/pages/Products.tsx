@@ -480,7 +480,7 @@ const Products = () => {
                       </td>
                       <td className="py-2 px-4 whitespace-nowrap">{shop.seller_type ?? "—"}</td>
                       <td className="py-2 px-4 whitespace-nowrap text-green-400 font-semibold">{formatCurrency(shop.gmv_total)}</td>
-                      <td className="py-2 px-4 whitespace-nowrap">{formatNumber(shop.item_sold ?? 0)}</td>
+                      <td className="py-2 px-4 whitespace-nowrap">{formatNumber(shop.product_count ?? shop.item_sold ?? 0)}</td>
                       <td className="py-2 px-4 whitespace-nowrap">${(shop.avg_unit_price ?? 0).toFixed(2)}</td>
                       <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.live_revenue ?? 0)}</td>
                       <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.video_revenue ?? 0)}</td>
