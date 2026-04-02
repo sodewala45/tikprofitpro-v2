@@ -506,7 +506,7 @@ const Products = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {shops.map(shop => (
+                  {filteredShops.map(shop => (
                     <tr key={shop.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                       <td className="py-2 px-4 font-medium whitespace-nowrap">
                         <div className="flex items-center gap-2">
