@@ -557,7 +557,10 @@ const Products = () => {
             </div>
             <div className="flex gap-2">
               {[{ id:"all", label:"All Creators" },{ id:"ugc", label:"UGC Only" },{ id:"aigc", label:"AIGC Only" }].map(f => (
-                <button key={f.id} className="px-3 py-1.5 rounded-full text-xs font-semibold border border-border bg-muted/30 text-muted-foreground hover:border-primary/50 transition-all">{f.label}</button>
+                <button key={f.id} onClick={() => setCreatorTypeFilter(f.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                    creatorTypeFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "bg-muted/30 text-muted-foreground border-border hover:border-primary/50"
+                  }`}>{f.label}</button>
               ))}
             </div>
           </div>
