@@ -84,6 +84,7 @@ const Products = () => {
   const [shopSortBy,      setShopSortBy]      = useState("gmv_total");
   const [creatorSearch,   setCreatorSearch]   = useState("");
   const [creatorSortBy,   setCreatorSortBy]   = useState("gmv_total");
+  const [creatorTypeFilter, setCreatorTypeFilter] = useState("all");
 
   const ITEMS_PER_PAGE = 15;
 
