@@ -80,6 +80,10 @@ const Products = () => {
   const [supplierLoading, setSupplierLoading] = useState(false);
   const [supplierError,   setSupplierError]   = useState<string | null>(null);
   const [imageModal,      setImageModal]      = useState<any>(null);
+  const [shopSearch,      setShopSearch]      = useState("");
+  const [shopSortBy,      setShopSortBy]      = useState("gmv_total");
+  const [creatorSearch,   setCreatorSearch]   = useState("");
+  const [creatorSortBy,   setCreatorSortBy]   = useState("gmv_total");
 
   const ITEMS_PER_PAGE = 15;
 
@@ -189,6 +193,26 @@ const Products = () => {
   const { data: creatorsData } = useQuery({ queryKey: ["creators"], queryFn: () => api.getCreators() });
   const shops    = shopsData?.shops       ?? mockNewShops;
   const creators = creatorsData?.creators ?? mockCreators;
+
+  const filteredShops = shops
+    .filter((s: any) => !shopSearch || (s.shop_name ?? "").toLowerCase().includes(shopSearch.toLowerCase()))
+    .sort((a: any, b: any) => {
+      if (shopSortBy === "gmv_total") return (b.gmv_total ?? 0) - (a.gmv_total ?? 0);
+      if (shopSortBy === "item_sold") return (b.product_count ?? b.item_sold ?? 0) - (a.product_count ?? a.item_sold ?? 0);
+      if (shopSortBy === "avg_unit_price") return (b.avg_unit_price ?? 0) - (a.avg_unit_price ?? 0);
+      if (shopSortBy === "name") return (a.shop_name ?? "").localeCompare(b.shop_name ?? "");
+      return 0;
+    });
+
+  const filteredCreators = creators
+    .filter((c: any) => !creatorSearch || (c.username ?? "").toLowerCase().includes(creatorSearch.toLowerCase()))
+    .sort((a: any, b: any) => {
+      if (creatorSortBy === "gmv_total") return (b.gmv_total ?? 0) - (a.gmv_total ?? 0);
+      if (creatorSortBy === "followers") return (b.followers ?? 0) - (a.followers ?? 0);
+      if (creatorSortBy === "engagement") return (b.engagement_rate ?? 0) - (a.engagement_rate ?? 0);
+      if (creatorSortBy === "conversion") return (b.conversion_rate ?? 0) - (a.conversion_rate ?? 0);
+      return 0;
+    });
 
   return (
     <div className="space-y-6 animate-slide-up pb-20 md:pb-6">
@@ -435,7 +459,7 @@ const Products = () => {
       {/* ══ TAB: NEW SHOPS ══ */}
       {activeTab === "shops" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-semibold text-base">🏪 New Shops on TikTok Shop USA</h2>
               <p className="text-xs text-muted-foreground mt-1">Newly launched shops with high growth velocity</p>
@@ -448,6 +472,20 @@ const Products = () => {
                   }`}>Last {f}</button>
               ))}
             </div>
+          </div>
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search shops..." value={shopSearch}
+                onChange={(e) => setShopSearch(e.target.value)} className="pl-9 bg-card border-border" />
+            </div>
+            <select value={shopSortBy} onChange={e => setShopSortBy(e.target.value)}
+              className="text-sm bg-card border border-border rounded-md px-3 py-2 text-foreground">
+              <option value="gmv_total">Revenue</option>
+              <option value="item_sold">Items Sold</option>
+              <option value="avg_unit_price">Avg. Unit Price</option>
+              <option value="name">Name A-Z</option>
+            </select>
           </div>
           <div className="rounded-xl border border-border overflow-hidden">
             <div className="overflow-x-auto">
@@ -468,7 +506,7 @@ const Products = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {shops.map(shop => (
+                  {filteredShops.map(shop => (
                     <tr key={shop.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                       <td className="py-2 px-4 font-medium whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -518,6 +556,20 @@ const Products = () => {
               ))}
             </div>
           </div>
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search creators..." value={creatorSearch}
+                onChange={(e) => setCreatorSearch(e.target.value)} className="pl-9 bg-card border-border" />
+            </div>
+            <select value={creatorSortBy} onChange={e => setCreatorSortBy(e.target.value)}
+              className="text-sm bg-card border border-border rounded-md px-3 py-2 text-foreground">
+              <option value="gmv_total">Revenue</option>
+              <option value="followers">Followers</option>
+              <option value="engagement">Engagement Rate</option>
+              <option value="conversion">Conversion Rate</option>
+            </select>
+          </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="rounded-xl border border-blue-500/25 bg-blue-500/5 p-4">
               <div className="flex items-center gap-2 mb-2"><UserCheck className="h-4 w-4 text-blue-400" /><span className="font-semibold text-sm text-blue-400">UGC Creators</span></div>
@@ -529,7 +581,7 @@ const Products = () => {
             </div>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {creators.map(creator => (
+            {filteredCreators.map(creator => (
               <div key={creator.id}
                 className={`rounded-xl border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors ${creator.ai_content ? "border-purple-500/25" : "border-border"}`}>
 
