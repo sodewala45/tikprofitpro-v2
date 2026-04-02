@@ -80,6 +80,10 @@ const Products = () => {
   const [supplierLoading, setSupplierLoading] = useState(false);
   const [supplierError,   setSupplierError]   = useState<string | null>(null);
   const [imageModal,      setImageModal]      = useState<any>(null);
+  const [shopSearch,      setShopSearch]      = useState("");
+  const [shopSortBy,      setShopSortBy]      = useState("gmv_total");
+  const [creatorSearch,   setCreatorSearch]   = useState("");
+  const [creatorSortBy,   setCreatorSortBy]   = useState("gmv_total");
 
   const ITEMS_PER_PAGE = 15;
 
