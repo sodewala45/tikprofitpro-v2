@@ -581,7 +581,7 @@ const Products = () => {
             </div>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {creators.map(creator => (
+            {filteredCreators.map(creator => (
               <div key={creator.id}
                 className={`rounded-xl border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors ${creator.ai_content ? "border-purple-500/25" : "border-border"}`}>
 
