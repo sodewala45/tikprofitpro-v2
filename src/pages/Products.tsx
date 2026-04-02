@@ -84,6 +84,7 @@ const Products = () => {
   const [shopSortBy,      setShopSortBy]      = useState("gmv_total");
   const [creatorSearch,   setCreatorSearch]   = useState("");
   const [creatorSortBy,   setCreatorSortBy]   = useState("gmv_total");
+  const [creatorTypeFilter, setCreatorTypeFilter] = useState("all");
 
   const ITEMS_PER_PAGE = 15;
 
@@ -205,7 +206,11 @@ const Products = () => {
     });
 
   const filteredCreators = creators
-    .filter((c: any) => !creatorSearch || (c.username ?? "").toLowerCase().includes(creatorSearch.toLowerCase()))
+    .filter((c: any) => {
+      const matchesSearch = !creatorSearch || (c.username ?? "").toLowerCase().includes(creatorSearch.toLowerCase());
+      const matchesType = creatorTypeFilter === "all" || (c.creator_type ?? "").toLowerCase() === creatorTypeFilter;
+      return matchesSearch && matchesType;
+    })
     .sort((a: any, b: any) => {
       if (creatorSortBy === "gmv_total") return (b.gmv_total ?? 0) - (a.gmv_total ?? 0);
       if (creatorSortBy === "followers") return (b.followers ?? 0) - (a.followers ?? 0);
@@ -552,7 +557,10 @@ const Products = () => {
             </div>
             <div className="flex gap-2">
               {[{ id:"all", label:"All Creators" },{ id:"ugc", label:"UGC Only" },{ id:"aigc", label:"AIGC Only" }].map(f => (
-                <button key={f.id} className="px-3 py-1.5 rounded-full text-xs font-semibold border border-border bg-muted/30 text-muted-foreground hover:border-primary/50 transition-all">{f.label}</button>
+                <button key={f.id} onClick={() => setCreatorTypeFilter(f.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                    creatorTypeFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "bg-muted/30 text-muted-foreground border-border hover:border-primary/50"
+                  }`}>{f.label}</button>
               ))}
             </div>
           </div>
