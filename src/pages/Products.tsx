@@ -206,7 +206,11 @@ const Products = () => {
     });
 
   const filteredCreators = creators
-    .filter((c: any) => !creatorSearch || (c.username ?? "").toLowerCase().includes(creatorSearch.toLowerCase()))
+    .filter((c: any) => {
+      const matchesSearch = !creatorSearch || (c.username ?? "").toLowerCase().includes(creatorSearch.toLowerCase());
+      const matchesType = creatorTypeFilter === "all" || (c.creator_type ?? "").toLowerCase() === creatorTypeFilter;
+      return matchesSearch && matchesType;
+    })
     .sort((a: any, b: any) => {
       if (creatorSortBy === "gmv_total") return (b.gmv_total ?? 0) - (a.gmv_total ?? 0);
       if (creatorSortBy === "followers") return (b.followers ?? 0) - (a.followers ?? 0);
