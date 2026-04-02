@@ -459,7 +459,7 @@ const Products = () => {
       {/* ══ TAB: NEW SHOPS ══ */}
       {activeTab === "shops" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-semibold text-base">🏪 New Shops on TikTok Shop USA</h2>
               <p className="text-xs text-muted-foreground mt-1">Newly launched shops with high growth velocity</p>
@@ -472,6 +472,20 @@ const Products = () => {
                   }`}>Last {f}</button>
               ))}
             </div>
+          </div>
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search shops..." value={shopSearch}
+                onChange={(e) => setShopSearch(e.target.value)} className="pl-9 bg-card border-border" />
+            </div>
+            <select value={shopSortBy} onChange={e => setShopSortBy(e.target.value)}
+              className="text-sm bg-card border border-border rounded-md px-3 py-2 text-foreground">
+              <option value="gmv_total">Revenue</option>
+              <option value="item_sold">Items Sold</option>
+              <option value="avg_unit_price">Avg. Unit Price</option>
+              <option value="name">Name A-Z</option>
+            </select>
           </div>
           <div className="rounded-xl border border-border overflow-hidden">
             <div className="overflow-x-auto">
