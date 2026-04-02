@@ -556,6 +556,20 @@ const Products = () => {
               ))}
             </div>
           </div>
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search creators..." value={creatorSearch}
+                onChange={(e) => setCreatorSearch(e.target.value)} className="pl-9 bg-card border-border" />
+            </div>
+            <select value={creatorSortBy} onChange={e => setCreatorSortBy(e.target.value)}
+              className="text-sm bg-card border border-border rounded-md px-3 py-2 text-foreground">
+              <option value="gmv_total">Revenue</option>
+              <option value="followers">Followers</option>
+              <option value="engagement">Engagement Rate</option>
+              <option value="conversion">Conversion Rate</option>
+            </select>
+          </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="rounded-xl border border-blue-500/25 bg-blue-500/5 p-4">
               <div className="flex items-center gap-2 mb-2"><UserCheck className="h-4 w-4 text-blue-400" /><span className="font-semibold text-sm text-blue-400">UGC Creators</span></div>
