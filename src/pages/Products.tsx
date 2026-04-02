@@ -191,6 +191,9 @@ const Products = () => {
 
   const { data: shopsData }    = useQuery({ queryKey: ["shops"],    queryFn: () => api.getShops({ limit: "50", sort_by: "gmv_total" })    });
   const { data: creatorsData } = useQuery({ queryKey: ["creators"], queryFn: () => api.getCreators() });
+  const shops    = shopsData?.shops       ?? mockNewShops;
+  const creators = creatorsData?.creators ?? mockCreators;
+
   const filteredShops = shops
     .filter((s: any) => !shopSearch || (s.shop_name ?? "").toLowerCase().includes(shopSearch.toLowerCase()))
     .sort((a: any, b: any) => {
