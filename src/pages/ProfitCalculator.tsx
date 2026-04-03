@@ -56,9 +56,7 @@ const ProfitCalculator = () => {
   };
 
   return (
-    <>
-    <Navbar />
-    <div className="space-y-6 animate-slide-up pb-20 md:pb-6 pt-24 md:pt-24 px-4 md:px-0">
+    <div className="space-y-6 animate-slide-up pb-20 md:pb-6">
       <div>
         <h1 className="text-xl md:text-2xl font-bold tracking-tight">Profit Calculator</h1>
         <p className="text-muted-foreground mt-1 text-sm">Calculate margins and estimate profits</p>
