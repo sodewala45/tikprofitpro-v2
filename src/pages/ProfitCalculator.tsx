@@ -130,7 +130,6 @@ const ProfitCalculator = () => {
         </div>
       </div>
     </div>
-    </>
   );
 };
 
