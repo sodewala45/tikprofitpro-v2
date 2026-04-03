@@ -699,6 +699,74 @@ const Products = () => {
         </div>
       )}
 
+      {/* ══ SHOP DETAIL MODAL ══ */}
+      {selectedShop && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center md:p-4" onClick={() => setSelectedShop(null)}>
+          <div className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full md:max-w-lg max-h-[95vh] md:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-border sticky top-0 bg-card z-10">
+              <div className="min-w-0">
+                <h2 className="font-semibold text-base flex items-center gap-2">
+                  <Store className="h-4 w-4 text-primary" />
+                  {selectedShop.shop_name}
+                </h2>
+                {selectedShop.seller_type && (
+                  <span className="text-xs text-muted-foreground mt-1 block">{selectedShop.seller_type}</span>
+                )}
+              </div>
+              <button onClick={() => setSelectedShop(null)} className="text-muted-foreground hover:text-foreground p-2 -mr-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-4 md:p-6 space-y-4">
+              {/* Revenue hero */}
+              <div className="flex items-center justify-between bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3">
+                <span className="text-sm text-muted-foreground">Total Revenue</span>
+                <span className="text-lg font-bold text-green-400">{formatCurrency(selectedShop.gmv_total ?? 0)}</span>
+              </div>
+
+              {selectedShop.gmv_growth_pct > 0 && (
+                <div className="flex items-center gap-2 text-xs">
+                  <TrendingUp className="h-3 w-3 text-green-400" />
+                  <span className="text-green-400 font-semibold">+{selectedShop.gmv_growth_pct}% growth</span>
+                </div>
+              )}
+
+              {/* Stats grid */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {[
+                  { label: "Items Sold", value: formatNumber(selectedShop.product_count ?? selectedShop.item_sold ?? 0) },
+                  { label: "Avg. Unit Price", value: `$${(selectedShop.avg_unit_price ?? 0).toFixed(2)}` },
+                  { label: "Live Revenue", value: formatCurrency(selectedShop.live_revenue ?? 0) },
+                  { label: "Video Revenue", value: formatCurrency(selectedShop.video_revenue ?? 0) },
+                  { label: "Product Card Revenue", value: formatCurrency(selectedShop.product_card_revenue ?? 0) },
+                  { label: "Self-Operated Revenue", value: formatCurrency(selectedShop.self_operated_revenue ?? 0) },
+                  { label: "Affiliate Revenue", value: formatCurrency(selectedShop.affiliate_revenue ?? 0) },
+                  { label: "Shopping Mall Revenue", value: formatCurrency(selectedShop.shopping_mall_revenue ?? 0) },
+                ].map((item, i) => (
+                  <div key={i} className="bg-muted/30 rounded-lg p-3">
+                    <div className="text-xs text-muted-foreground mb-1">{item.label}</div>
+                    <div className="font-semibold">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Go to Shop button */}
+              {selectedShop.shop_url ? (
+                <a href={selectedShop.shop_url} target="_blank" rel="noopener noreferrer" className="block">
+                  <Button className="w-full bg-primary text-primary-foreground min-h-[44px]">
+                    <Store className="h-4 w-4 mr-2" /> Go to Shop Page →
+                  </Button>
+                </a>
+              ) : (
+                <Button disabled className="w-full min-h-[44px] opacity-50">
+                  <Store className="h-4 w-4 mr-2" /> Shop URL not available
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ══ SUPPLIER MODAL ══ */}
       {supplierProduct && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center md:p-4" onClick={() => setSupplierProduct(null)}>
