@@ -513,10 +513,10 @@ const Products = () => {
                 </thead>
                 <tbody>
                   {filteredShops.map(shop => (
-                    <tr key={shop.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                    <tr key={shop.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => setSelectedShop(shop)}>
                       <td className="py-2 px-4 font-medium whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <span>{shop.shop_name}</span>
+                          <span className="text-primary hover:underline">{shop.shop_name}</span>
                           {shop.gmv_growth_pct > 300 && (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">+{shop.gmv_growth_pct}%</span>
                           )}
