@@ -80,6 +80,7 @@ const Products = () => {
   const [supplierLoading, setSupplierLoading] = useState(false);
   const [supplierError,   setSupplierError]   = useState<string | null>(null);
   const [imageModal,      setImageModal]      = useState<any>(null);
+  const [selectedShop,    setSelectedShop]    = useState<any>(null);
   const [shopSearch,      setShopSearch]      = useState("");
   const [shopSortBy,      setShopSortBy]      = useState("gmv_total");
   const [creatorSearch,   setCreatorSearch]   = useState("");
