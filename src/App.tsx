@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Products from "./pages/Products";
 import Suppliers from "./pages/Suppliers";
 import ProfitCalculator from "./pages/ProfitCalculator";
+import ListProduct from "./pages/ListProduct";
 import Pricing from "./pages/Pricing";
 import Demo from "./pages/Demo";
 import SettingsPage from "./pages/Settings";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/demo" element={<Demo />} />
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/calculator" element={<Layout><ProfitCalculator /></Layout>} />
+            <Route path="/list-product" element={<Layout><ListProduct /></Layout>} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/terms" element={<Terms />} />
