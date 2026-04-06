@@ -19,6 +19,7 @@ const ProfitCalculator = () => {
     product_cost: "",
     shipping_cost: "",
     selling_price: "",
+    referral_fee: "",
     quantity: "1",
   });
   const [result, setResult] = useState<ProfitResult | null>(null);
@@ -33,20 +34,25 @@ const ProfitCalculator = () => {
     setError("");
     setResult(null);
     try {
-      const payload = {
-        product_id: "manual",
-        sale_price: parseFloat(form.selling_price) || 0,
-        cogs: parseFloat(form.product_cost) || 0,
-      };
-      const data = await api.calcProfit(payload);
+      const sellingPrice = parseFloat(form.selling_price) || 0;
+      const productCost = parseFloat(form.product_cost) || 0;
+      const shippingCost = parseFloat(form.shipping_cost) || 0;
+      const referralPct = parseFloat(form.referral_fee) || 0;
+      const quantity = parseFloat(form.quantity) || 1;
+
+      const tiktokFee = sellingPrice * (referralPct / 100);
+      const profitPerUnit = sellingPrice - tiktokFee - productCost - shippingCost;
+      const totalProfit = profitPerUnit * quantity;
+      const totalRevenue = sellingPrice * quantity;
+      const totalCost = (productCost + shippingCost + tiktokFee) * quantity;
+      const margin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
       setResult({
-        revenue: data.summary?.sale_price,
-        total_cost: data.summary?.total_costs,
-        profit: data.summary?.net_profit,
-        margin: data.summary?.margin_pct,
-        rating: data.rating,
-        warnings: data.warnings,
-        breakdown: data.breakdown,
+        revenue: totalRevenue,
+        tiktok_fee: tiktokFee * quantity,
+        total_cost: totalCost,
+        profit: totalProfit,
+        margin,
       });
     } catch (err: any) {
       setError(err?.message || "Calculation failed. Please try again.");
@@ -84,6 +90,11 @@ const ProfitCalculator = () => {
               <Input id="selling_price" type="number" placeholder="0.00" value={form.selling_price} onChange={(e) => update("selling_price", e.target.value)} className="mt-1 bg-background min-h-[44px]" />
             </div>
             <div>
+              <Label htmlFor="referral_fee">TikTok Referral Fee (%)</Label>
+              <Input id="referral_fee" type="number" placeholder="e.g. 6 for most categories, 5 for jewelry" value={form.referral_fee} onChange={(e) => update("referral_fee", e.target.value)} className="mt-1 bg-background min-h-[44px]" />
+              <p className="text-xs text-muted-foreground mt-1">TikTok charges 6% for most categories, 5% for select jewelry items</p>
+            </div>
+            <div>
               <Label htmlFor="quantity">Quantity</Label>
               <Input id="quantity" type="number" placeholder="1" value={form.quantity} onChange={(e) => update("quantity", e.target.value)} className="mt-1 bg-background min-h-[44px]" />
             </div>
@@ -107,6 +118,7 @@ const ProfitCalculator = () => {
             <div className="space-y-4">
               {[
                 { label: "Revenue", value: result.revenue, prefix: "$" },
+                { label: "TikTok Referral Fee", value: result.tiktok_fee, prefix: "-$" },
                 { label: "Total Cost", value: result.total_cost, prefix: "$" },
                 { label: "Profit", value: result.profit, prefix: "$", highlight: true },
                 { label: "Margin", value: result.margin, suffix: "%" },
