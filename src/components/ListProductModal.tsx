@@ -52,8 +52,31 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
   const [description, setDescription] = useState("");
   const [sellingPoints, setSellingPoints] = useState("");
   const [images, setImages] = useState<string[]>(product.thumbnail_url ? [product.thumbnail_url] : []);
-  const [copied, setCopied] = useState(false);
+const [copied, setCopied] = useState(false);
+const [generating, setGenerating] = useState(false);
 
+const generateWithAI = async () => {
+  setGenerating(true);
+  try {
+    const response = await fetch("https://api.tikprofitpro.shop/generate-listing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        product_name: title,
+        price: parseFloat(price) || 0,
+        category: product.category ?? ""
+      })
+    });
+    const parsed = await response.json();
+    if (parsed.description) setDescription(parsed.description);
+    if (parsed.category) setCategory(parsed.category);
+    if (parsed.sellingPoints) setSellingPoints(parsed.sellingPoints);
+  } catch (err) {
+    console.error("AI generation failed:", err);
+  } finally {
+    setGenerating(false);
+  }
+};
   const [supplierCost, setSupplierCost] = useState("");
   const [shippingCost, setShippingCost] = useState("");
   const [referralFee, setReferralFee] = useState("");
@@ -208,7 +231,15 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
               </div>
 
               <div>
-                <Label htmlFor="lpm-desc">Description</Label>
+                <div className="flex items-center justify-between">
+                   <Label htmlFor="lpm-desc">Description</Label>
+                   <button
+                    onClick={generateWithAI}
+                    disabled={generating}
+                    className="text-xs text-primary hover:underline disabled:opacity-50 flex items-center gap-1">
+                    {generating ? "⏳ Generating..." : "✨ Auto-generate with AI"}
+                   </button>
+              </div>
                 <Textarea
                   id="lpm-desc"
                   rows={4}
