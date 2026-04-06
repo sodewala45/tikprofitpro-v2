@@ -948,6 +948,11 @@ const Products = () => {
         </div>
       )}
 
+      {/* ══ LIST PRODUCT MODAL ══ */}
+      {listProductItem && (
+        <ListProductModal product={listProductItem} onClose={() => setListProductItem(null)} />
+      )}
+
     </div>
   );
 };
