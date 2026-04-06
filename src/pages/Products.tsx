@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Loader2, X, TrendingUp, ShoppingCart, Users, Star,
   Factory, Lock, ChevronLeft, ChevronRight, Eye,
-  DollarSign, Zap, Clock, Store, Video, UserCheck
+  DollarSign, Zap, Clock, Store, Video, UserCheck, ShoppingBag
 } from "lucide-react";
+import ListProductModal from "@/components/ListProductModal";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -81,6 +82,7 @@ const Products = () => {
   const [supplierError,   setSupplierError]   = useState<string | null>(null);
   const [imageModal,      setImageModal]      = useState<any>(null);
   const [selectedShop,    setSelectedShop]    = useState<any>(null);
+  const [listProductItem, setListProductItem] = useState<any>(null);
   const [shopSearch,      setShopSearch]      = useState("");
   const [shopSortBy,      setShopSortBy]      = useState("gmv_total");
   const [creatorSearch,   setCreatorSearch]   = useState("");
@@ -889,13 +891,15 @@ const Products = () => {
                   View on TikTok Shop
                 </a>
               )}
-              {selectedProduct.thumbnail_url && (
-                <button
-                  onClick={() => setImageModal(selectedProduct)}
-                  className="flex-1 border border-primary/30 text-primary rounded-lg py-3 text-sm font-medium text-center hover:bg-primary/10 min-h-[44px] flex items-center justify-center gap-2">
-                  <Eye className="h-4 w-4" /> View Image
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  const prod = selectedProduct;
+                  setSelectedProduct(null);
+                  setListProductItem(prod);
+                }}
+                className="flex-1 border border-primary/30 text-primary rounded-lg py-3 text-sm font-medium text-center hover:bg-primary/10 min-h-[44px] flex items-center justify-center gap-2">
+                <ShoppingBag className="h-4 w-4" /> List Product
+              </button>
               <button className="flex-1 border border-border rounded-lg py-3 text-sm font-medium hover:bg-muted/30 min-h-[44px]"
                 onClick={() => handleFindSupplier(selectedProduct, { stopPropagation: () => {} } as any)}>
                 Find Suppliers
@@ -942,6 +946,11 @@ const Products = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ══ LIST PRODUCT MODAL ══ */}
+      {listProductItem && (
+        <ListProductModal product={listProductItem} onClose={() => setListProductItem(null)} />
       )}
 
     </div>
