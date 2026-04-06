@@ -51,7 +51,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
   const [condition, setCondition] = useState("New");
   const [description, setDescription] = useState("");
   const [sellingPoints, setSellingPoints] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>(product.thumbnail_url ? [product.thumbnail_url] : []);
   const [copied, setCopied] = useState(false);
 
   const [supplierCost, setSupplierCost] = useState("");
