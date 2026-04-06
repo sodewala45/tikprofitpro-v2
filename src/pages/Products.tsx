@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Loader2, X, TrendingUp, ShoppingCart, Users, Star,
   Factory, Lock, ChevronLeft, ChevronRight, Eye,
-  DollarSign, Zap, Clock, Store, Video, UserCheck
+  DollarSign, Zap, Clock, Store, Video, UserCheck, ShoppingBag
 } from "lucide-react";
+import ListProductModal from "@/components/ListProductModal";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
