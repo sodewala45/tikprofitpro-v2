@@ -38,7 +38,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   });
 
   const plan = creditsData?.plan;
-  const showCredits = plan === "pro" || plan === "ultimate";
+  const showCredits = !!creditsData;
 
   return (
     <SidebarProvider>
