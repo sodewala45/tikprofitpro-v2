@@ -116,6 +116,7 @@ const Products = () => {
   const plan        = productsRaw?.plan ?? creditsData?.plan ?? "free";
   const items       = Array.isArray(products) ? products : productsRaw?.products ?? [];
   const isFree      = plan === "free";
+  const hasCredits  = (creditsData?.credits ?? 0) > 0;
 
   const selectedFilter = TIME_FILTERS.find(f => f.id === timeFilter);
   const selectedFilterDays: number | null = selectedFilter?.days ?? null;
@@ -811,7 +812,7 @@ const Products = () => {
                     return (
                       <div key={i} className="rounded-xl border border-border bg-muted/20 p-4 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium truncate max-w-[70%]">{isFree ? (supplierProduct?.product_name || `Supplier ${i+1}`) : (s.supplier_name || s.name || `Supplier ${i+1}`)}</span>
+                          <span className="text-sm font-medium truncate max-w-[70%]">{(isFree && !hasCredits) ? (supplierProduct?.product_name || `Supplier ${i+1}`) : (s.supplier_name || s.name || `Supplier ${i+1}`)}</span>
                           <span className={`text-xs font-semibold ${rc}`}>{s._profit?.profit_label || "—"}</span>
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
@@ -821,7 +822,7 @@ const Products = () => {
                           <div>Profit: <span className="text-foreground font-medium">${s._profit?.net_profit ?? "—"}</span></div>
                         </div>
                         {s._profit?.margin_pct != null && <div className="text-xs">Margin: <span className={`font-semibold ${rc}`}>{s._profit.margin_pct}%</span></div>}
-                        {isFree ? (
+                        {(isFree && !hasCredits) ? (
                           <Link to="/pricing" className="block w-full">
                             <button style={{ background:"linear-gradient(135deg,#00C853,#00BCD4)", borderRadius:"8px", padding:"10px 16px", border:"none", cursor:"pointer", width:"100%", minHeight:"44px", color:"white", fontWeight:"bold", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                               <span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Upgrade to View Supplier</span><span>→</span>
