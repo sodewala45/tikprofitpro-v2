@@ -823,7 +823,15 @@ const Products = () => {
                         </div>
                         {s._profit?.margin_pct != null && <div className="text-xs">Margin: <span className={`font-semibold ${rc}`}>{s._profit.margin_pct}%</span></div>}
                         {s.supplier_url && (
-                          <a href={s.supplier_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">View Supplier →</a>
+                          <a
+                            href={s.supplier_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex w-full min-h-[44px] items-center justify-between rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                          >
+                            <span>View Supplier</span>
+                            <span>→</span>
+                          </a>
                         )}
                       </div>
                     );
