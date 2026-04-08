@@ -113,10 +113,11 @@ const Products = () => {
   useEffect(() => { setCurrentPage(1); }, [debouncedSearch, timeFilter, sortBy]);
 
   const productsRaw = products as any;
-  const plan        = productsRaw?.plan ?? creditsData?.plan ?? "free";
+  const creditInfo  = creditsData?.credits ?? creditsData ?? {};
+  const plan        = productsRaw?.plan ?? creditInfo?.plan ?? "free";
   const items       = Array.isArray(products) ? products : productsRaw?.products ?? [];
   const isFree      = plan === "free";
-  const hasCredits  = (creditsData?.credits ?? 0) > 0;
+  const hasCredits  = (creditInfo?.credits_remaining ?? 0) > 0;
 
   const selectedFilter = TIME_FILTERS.find(f => f.id === timeFilter);
   const selectedFilterDays: number | null = selectedFilter?.days ?? null;
