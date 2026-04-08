@@ -117,7 +117,6 @@ const Products = () => {
   const plan        = productsRaw?.plan ?? creditInfo?.plan ?? "free";
   const items       = Array.isArray(products) ? products : productsRaw?.products ?? [];
   const isFree      = plan === "free";
-  const hasCredits  = (creditInfo?.credits_remaining ?? 0) > 0;
 
   const selectedFilter = TIME_FILTERS.find(f => f.id === timeFilter);
   const selectedFilterDays: number | null = selectedFilter?.days ?? null;
