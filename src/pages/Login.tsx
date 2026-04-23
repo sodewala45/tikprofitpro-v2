@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,10 +15,28 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { session } = useAuth();
 
+  const getPendingPlan = () => {
+    const fromUrl = searchParams.get("plan");
+    if (fromUrl) return fromUrl;
+    try {
+      return sessionStorage.getItem("pendingCheckoutPlan");
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
-    if (session) navigate("/dashboard", { replace: true });
+    if (!session) return;
+    const plan = getPendingPlan();
+    if (plan) {
+      try { sessionStorage.removeItem("pendingCheckoutPlan"); } catch {}
+      api.createCheckout(plan).catch(() => navigate("/dashboard", { replace: true }));
+    } else {
+      navigate("/dashboard", { replace: true });
+    }
   }, [session, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,17 +49,18 @@ const Login = () => {
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
-      navigate("/dashboard");
     }
+    // Successful login triggers session effect above
   };
 
   const handleSocialLogin = async (provider: "google" | "apple") => {
     setSocialLoading(provider);
     setError("");
+    const plan = getPendingPlan();
+    const redirectPath = plan ? `/login?plan=${plan}` : "/dashboard";
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: `${window.location.origin}${redirectPath}` },
     });
     if (error) {
       setError(error.message);
