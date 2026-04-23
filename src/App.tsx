@@ -14,7 +14,7 @@ import ProfitCalculator from "./pages/ProfitCalculator";
 import Tutorials from "./pages/Tutorials";
 
 import Pricing from "./pages/Pricing";
-import Demo from "./pages/Demo";
+
 import SettingsPage from "./pages/Settings";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -35,7 +35,7 @@ const App = () => (
             {/* Public pages */}
             <Route path="/" element={<Landing />} />
             <Route path="/pricing" element={<Pricing />} />
-            <Route path="/demo" element={<Demo />} />
+            
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/calculator" element={<Layout><ProfitCalculator /></Layout>} />
             <Route path="/tutorials" element={<Layout><Tutorials /></Layout>} />
