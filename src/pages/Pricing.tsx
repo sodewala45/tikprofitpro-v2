@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 const Pricing = () => {
   const { session } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
@@ -22,6 +23,15 @@ const Pricing = () => {
   }, [location]);
 
   const handleCheckout = async (plan: string) => {
+    // If not logged in, save plan and redirect to signup
+    if (!session) {
+      try {
+        sessionStorage.setItem("pendingCheckoutPlan", plan);
+      } catch {}
+      navigate(`/signup?plan=${plan}`);
+      return;
+    }
+
     setLoadingPlan(plan);
     try {
       await api.createCheckout(plan);

@@ -143,6 +143,38 @@ const Landing = () => {
         </div>
       </SectionWrapper>
 
+      {/* ───── VIDEO TUTORIAL ───── */}
+      <section className="pb-16 md:pb-24 px-4 md:px-6" style={{ background: "#080c14" }}>
+        <div className="max-w-4xl mx-auto pt-16 md:pt-24">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-center tracking-tight mb-3" style={{ color: "#fff" }}>
+            See TikProfitPro in Action
+          </h2>
+          <p className="text-center mb-8 md:mb-10 text-sm md:text-base" style={{ color: "#888" }}>
+            Watch how to find winning products in under 2 minutes.
+          </p>
+          <div
+            className="mx-auto relative w-full overflow-hidden rounded-2xl"
+            style={{
+              maxWidth: 800,
+              paddingTop: "min(56.25%, 450px)",
+              border: "1px solid rgba(0,255,136,0.3)",
+              boxShadow: "0 0 60px rgba(0,255,136,0.2), 0 0 100px rgba(0,255,136,0.08)",
+              background: "#000",
+            }}
+          >
+            <iframe
+              src="https://www.youtube.com/embed/lWwx4ZflJyU?rel=0&modestbranding=1"
+              title="See TikProfitPro in Action"
+              className="absolute inset-0 w-full h-full"
+              frameBorder={0}
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* ───── 3 STEPS ───── */}
       <SectionWrapper className="pb-16 md:pb-24">
         <h2 className="text-2xl md:text-4xl font-extrabold text-center tracking-tight mb-8 md:mb-12">Start Selling Winners in 3 Steps</h2>
