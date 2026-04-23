@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Calculator, Settings, Loader2, Crown, LogIn, UserPlus } from "lucide-react";
+import { LayoutDashboard, Package, Calculator, Settings, Loader2, Crown, LogIn, UserPlus, PlayCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -21,7 +21,7 @@ const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Products", url: "/products", icon: Package },
   { title: "Profit Calculator", url: "/calculator", icon: Calculator },
-  
+  { title: "Tutorials", url: "/tutorials", icon: PlayCircle },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
