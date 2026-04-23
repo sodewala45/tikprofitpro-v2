@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Loader2, Menu } from "lucide-react";
+import { LogOut, Loader2, Menu, PlayCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import VideoModal from "@/components/VideoModal";
 
 function MobileMenuButton() {
   const { toggleSidebar, isMobile } = useSidebar();
@@ -22,6 +24,7 @@ function MobileMenuButton() {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
+  const [videoOpen, setVideoOpen] = useState(false);
 
   const { data: creditsData } = useQuery({
     queryKey: ["user-credits-nav", user?.id],
@@ -51,6 +54,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger className="hidden md:flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] items-center justify-center" />
             </div>
             <div className="flex items-center gap-2 md:gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setVideoOpen(true)}
+                className="text-muted-foreground hover:text-foreground gap-1.5 min-h-[44px]"
+              >
+                <PlayCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">How to Use</span>
+              </Button>
               {showCredits && (
                 <span className="text-[10px] md:text-xs text-muted-foreground bg-muted/50 px-2 md:px-2.5 py-1 rounded-md">
                   <span className="text-foreground font-medium">{creditsData?.credits_used ?? 0}/{creditsData?.credits_total ?? 0}</span>
@@ -72,6 +84,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+      <VideoModal open={videoOpen} onOpenChange={setVideoOpen} />
     </SidebarProvider>
   );
 }
