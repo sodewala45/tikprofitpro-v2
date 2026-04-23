@@ -55,10 +55,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex items-center gap-2 md:gap-3">
               <Button
-                variant="ghost"
                 size="sm"
                 onClick={() => setVideoOpen(true)}
-                className="text-muted-foreground hover:text-foreground gap-1.5 min-h-[44px]"
+                className="gap-1.5 min-h-[44px] bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold shadow-md shadow-emerald-500/20"
               >
                 <PlayCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">How to Use</span>
