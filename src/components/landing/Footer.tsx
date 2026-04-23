@@ -13,7 +13,7 @@ export default function Footer() {
         <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-xs md:text-sm text-[#666]">
           <Link to="/pricing" className="hover:text-white transition-colors min-h-[44px] flex items-center">Pricing</Link>
           <Link to="/suppliers" className="hover:text-white transition-colors min-h-[44px] flex items-center">Suppliers</Link>
-          <Link to="/demo" className="hover:text-white transition-colors min-h-[44px] flex items-center">Demo</Link>
+          <Link to="/tutorials" className="hover:text-white transition-colors min-h-[44px] flex items-center">Tutorials</Link>
           <Link to="/calculator" className="hover:text-white transition-colors min-h-[44px] flex items-center">Calculator</Link>
           <a href="https://blog.tikprofitpro.shop" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors min-h-[44px] flex items-center">Blog</a>
           <Link to="/terms" className="hover:text-white transition-colors min-h-[44px] flex items-center">Terms</Link>

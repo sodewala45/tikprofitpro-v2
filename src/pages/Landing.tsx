@@ -56,9 +56,9 @@ const Landing = () => {
               style={{ background: "linear-gradient(135deg, #00ff85, #00cc6a)", color: "#080808", boxShadow: "0 0 35px rgba(0,255,133,0.35)" }}>
               Start for $39/mo →
             </Link>
-            <Link to="/demo"
+            <Link to="/tutorials"
               className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-medium border border-white/15 text-white/80 hover:border-white/30 hover:bg-white/5 transition-all inline-flex items-center justify-center min-h-[48px]">
-              View Demo Dashboard
+              Watch Tutorials
             </Link>
           </motion.div>
 
