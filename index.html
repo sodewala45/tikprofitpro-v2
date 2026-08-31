@@ -97,7 +97,36 @@
 </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Static fallback content for crawlers/bots that don't execute JavaScript.
+           This is automatically replaced by the live React app for real browsers. -->
+      <main style="background:#080808;color:#fff;font-family:Arial,Helvetica,sans-serif;padding:40px 20px;max-width:900px;margin:0 auto;">
+        <header>
+          <h1 style="font-size:2rem;font-weight:900;">TikProfitPro — Find TikTok Shop Winners Before They Go Viral</h1>
+          <p style="color:#aaa;font-size:1.1rem;">Track virality scores, GMV data, and supplier prices — source profitable products before your competition.</p>
+        </header>
+        <section>
+          <h2>What is TikProfitPro?</h2>
+          <p>TikProfitPro is a TikTok Shop intelligence tool that tracks 1,000+ trending products weekly, scores their virality before they peak, matches them with Alibaba suppliers, and calculates your exact profit margin after TikTok fees. Trusted by 2,400+ TikTok Shop sellers.</p>
+        </section>
+        <section>
+          <h2>Key Features</h2>
+          <ul>
+            <li>Weekly-updated database of 100+ trending TikTok Shop products</li>
+            <li>Virality scoring to spot winners before they peak</li>
+            <li>Automatic Alibaba supplier matching for every trending product</li>
+            <li>Built-in profit calculator (accounts for TikTok's 8% commission and 2.9% payment processing fee)</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Pricing</h2>
+          <p>Free plan available. Paid plan starts at $39/month with full access to 1,000+ trending products, virality scores, supplier matching, and the profit calculator.</p>
+        </section>
+        <footer>
+          <p><a href="/login" style="color:#25F4EE;">Log In</a> &nbsp;|&nbsp; <a href="/pricing#free" style="color:#25F4EE;">Start for Free</a></p>
+        </footer>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
