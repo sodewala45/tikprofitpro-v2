@@ -93,8 +93,9 @@ const Signup = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
+          <img src="/tikprofitpro_icon.svg" alt="TikProfitPro" className="h-12 w-12 mx-auto mb-2" />
           <h1 className="text-2xl font-bold tracking-tight">
-            <span className="text-primary">Profit</span>Scout
+            Tik<span style={{ color: "#25F4EE" }}>Profit</span><span style={{ color: "#FE2C55" }}>Pro</span>
           </h1>
           <p className="text-sm text-muted-foreground">Create your account</p>
         </div>
