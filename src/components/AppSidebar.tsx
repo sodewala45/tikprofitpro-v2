@@ -48,7 +48,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <NavLink to={user ? "/dashboard" : "/"} className="flex items-center gap-2.5 group-data-[collapsible=icon]:justify-center cursor-pointer hover:opacity-80 transition-opacity block">
-          <img src="/tikprofitpro_icon.svg" alt="TikProfitPro" className="h-8 w-8 rounded-lg shrink-0" />
+          <img src="/tikprofitpro_icon.svg" alt="TikProfitPro" className="h-8 w-8 rounded-lg shrink-0 hidden group-data-[collapsible=icon]:block" />
           <img src="/tikprofitpro_logo.svg" alt="TikProfitPro" style={{ height: 28 }} className="group-data-[collapsible=icon]:hidden" />
         </NavLink>
       </SidebarHeader>
