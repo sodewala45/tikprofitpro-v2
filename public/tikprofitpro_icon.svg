@@ -4,9 +4,9 @@
       <stop offset="0%" style="stop-color:#0a0a0a"/>
       <stop offset="100%" style="stop-color:#1a1a2e"/>
     </linearGradient>
-    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#00C853"/>
-      <stop offset="100%" style="stop-color:#00E676"/>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#25F4EE"/>
+      <stop offset="100%" style="stop-color:#FE2C55"/>
     </linearGradient>
     <filter id="glow">
       <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -19,25 +19,25 @@
 
   <!-- Background -->
   <rect x="0" y="0" width="120" height="120" rx="24" fill="url(#bgGrad)"/>
-  
+
   <!-- Outer ring -->
-  <circle cx="60" cy="60" r="52" fill="none" stroke="#00C853" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="60" cy="60" r="52" fill="none" stroke="#25F4EE" stroke-width="1.5" opacity="0.3"/>
 
   <!-- Chart bars -->
   <g filter="url(#glow)" transform="translate(60,65)">
-    <rect x="-28" y="4" width="14" height="18" rx="3" fill="#00C853" opacity="0.4"/>
-    <rect x="-11" y="-8" width="14" height="30" rx="3" fill="#00C853" opacity="0.65"/>
-    <rect x="6" y="-24" width="14" height="46" rx="3" fill="url(#greenGrad)"/>
+    <rect x="-28" y="4" width="14" height="18" rx="3" fill="#25F4EE" opacity="0.4"/>
+    <rect x="-11" y="-8" width="14" height="30" rx="3" fill="#25F4EE" opacity="0.65"/>
+    <rect x="6" y="-24" width="14" height="46" rx="3" fill="url(#brandGrad)"/>
     <!-- Arrow up -->
-    <polygon points="13,-28 20,-38 27,-28" fill="#00E676"/>
+    <polygon points="13,-28 20,-38 27,-28" fill="#FE2C55"/>
   </g>
 
-  <!-- "T P P" letters at bottom -->
+  <!-- "TPP" letters at bottom -->
   <text x="60" y="108"
     font-family="'Arial Black', Arial, sans-serif"
     font-weight="900"
     font-size="11"
-    fill="#00C853"
+    fill="#25F4EE"
     text-anchor="middle"
     letter-spacing="4">TPP</text>
 </svg>
