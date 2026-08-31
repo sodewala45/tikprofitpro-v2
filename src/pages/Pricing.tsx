@@ -51,7 +51,7 @@ const Pricing = () => {
       <section className="pt-28 md:pt-36 pb-16 md:pb-24 max-w-5xl mx-auto px-4 md:px-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10 md:mb-14">
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">Simple, Transparent Pricing</h1>
-          <p className="text-sm md:text-base" style={{ color: "#888" }}>One product win pays for months of ProfitScout</p>
+          <p className="text-sm md:text-base" style={{ color: "#888" }}>One product win pays for months of TikProfitPro</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
