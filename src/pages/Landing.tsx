@@ -343,8 +343,8 @@ const Landing = () => {
           <img
             src="/founder-arif.webp"
             alt="Muhammad Arif Suriwala, Founder of TikProfitPro"
-            className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-2 flex-shrink-0"
-            style={{ borderColor: "#00ff85" }}
+            className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover flex-shrink-0"
+            style={{ borderColor: "#00ff85", borderWidth: 2, borderStyle: "solid", objectPosition: "50% 15%" }}
           />
           <div>
             <h3 className="text-lg md:text-xl font-bold">Muhammad Arif Suriwala</h3>
