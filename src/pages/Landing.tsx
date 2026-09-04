@@ -84,7 +84,32 @@ const Landing = () => {
         </motion.div>
       </section>
 
-      {/* ───── STATS ───── */}
+      {/* ───── PRODUCT PREVIEW (LIVE APP SCREENSHOT) ───── */}
+      <SectionWrapper className="pb-16 md:pb-24">
+        <div className="max-w-5xl mx-auto">
+          <div className="rounded-2xl overflow-hidden border border-white/10" style={{ boxShadow: "0 0 60px rgba(0,255,133,0.08)" }}>
+            {/* Fake browser chrome bar for context */}
+            <div className="flex items-center gap-2 px-4 py-3 bg-[#111] border-b border-white/5">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+                <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+                <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+              </div>
+              <div className="ml-3 px-3 py-1 rounded-md text-xs" style={{ background: "#0a0a0a", color: "#666" }}>
+                app.tikprofitpro.shop/dashboard
+              </div>
+            </div>
+            <img
+              src="/screenshots/dashboard-preview.png"
+              alt="TikProfitPro live dashboard showing trending TikTok Shop products, virality scores, and profit data"
+              className="w-full block"
+            />
+          </div>
+          <p className="text-center text-xs md:text-sm mt-4" style={{ color: "#666" }}>
+            The live TikProfitPro dashboard — real-time trending product data for TikTok Shop sellers.
+          </p>
+        </div>
+      </SectionWrapper>
       <SectionWrapper className="pb-16 md:pb-24">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
@@ -308,6 +333,37 @@ const Landing = () => {
             style={{ borderColor: "#00ff85", color: "#00ff85", background: "rgba(0,255,133,0.08)" }}>
             Start for Free →
           </Link>
+        </div>
+      </SectionWrapper>
+
+      {/* ───── FOUNDER / ABOUT ───── */}
+      <SectionWrapper id="about" className="pb-16 md:pb-24">
+        <h2 className="text-2xl md:text-4xl font-extrabold text-center tracking-tight mb-8 md:mb-10">Built By</h2>
+        <div className="max-w-2xl mx-auto p-6 md:p-8 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+          <img
+            src="/founder-arif.webp"
+            alt="Muhammad Arif Suriwala, Founder of TikProfitPro"
+            className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover border-2 flex-shrink-0"
+            style={{ borderColor: "#00ff85" }}
+          />
+          <div>
+            <h3 className="text-lg md:text-xl font-bold">Muhammad Arif Suriwala</h3>
+            <p className="text-sm mb-3" style={{ color: "#00ff85" }}>Founder &amp; Full-Stack / AI Engineer</p>
+            <p className="text-sm leading-relaxed mb-4" style={{ color: "#aaa" }}>
+              Arif is a solo technical founder based in Karachi, Pakistan, building TikProfitPro to help
+              TikTok Shop sellers find winning products before they go viral. He owns the full technical
+              stack of the product, end to end.
+            </p>
+            <a
+              href="https://www.linkedin.com/in/sodewala"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg border transition-all hover:-translate-y-0.5"
+              style={{ borderColor: "#00ff85", color: "#00ff85", background: "rgba(0,255,133,0.08)" }}
+            >
+              View LinkedIn Profile →
+            </a>
+          </div>
         </div>
       </SectionWrapper>
 
