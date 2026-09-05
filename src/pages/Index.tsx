@@ -163,7 +163,30 @@ const Dashboard = () => {
                 <tbody>
                   {products.map((product: any, i: number) => (
                     <tr key={product.id ?? i} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                      <td className="py-3.5 px-4 font-semibold max-w-xs truncate">{product.product_name}</td>
+                      <td className="py-3.5 px-4 font-semibold max-w-xs">
+                        <div className="flex items-center gap-3">
+                          {product.thumbnail_url ? (
+                            <img
+                              src={product.thumbnail_url}
+                              alt={product.product_name}
+                              className="w-11 h-11 rounded-lg object-cover shrink-0 border border-border"
+                              onError={(e) => {
+                                const img = e.target as HTMLImageElement;
+                                img.style.display = "none";
+                                const fallback = img.nextElementSibling as HTMLElement | null;
+                                if (fallback) fallback.style.display = "flex";
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className="w-11 h-11 rounded-lg bg-muted/50 shrink-0 items-center justify-center text-base border border-border"
+                            style={{ display: product.thumbnail_url ? "none" : "flex" }}
+                          >
+                            📦
+                          </div>
+                          <span className="truncate">{product.product_name}</span>
+                        </div>
+                      </td>
                       <td className="py-3.5 px-4 text-muted-foreground text-sm">{product.category}</td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2">
@@ -193,9 +216,30 @@ const Dashboard = () => {
               {products.map((product: any, i: number) => (
                 <div key={product.id ?? i} className="rounded-xl border border-border bg-card p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm md:text-base truncate">{product.product_name}</p>
-                      <p className="text-xs md:text-sm text-muted-foreground">{product.category}</p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {product.thumbnail_url ? (
+                        <img
+                          src={product.thumbnail_url}
+                          alt={product.product_name}
+                          className="w-11 h-11 rounded-lg object-cover shrink-0 border border-border"
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.style.display = "none";
+                            const fallback = img.nextElementSibling as HTMLElement | null;
+                            if (fallback) fallback.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="w-11 h-11 rounded-lg bg-muted/50 shrink-0 items-center justify-center text-base border border-border"
+                        style={{ display: product.thumbnail_url ? "none" : "flex" }}
+                      >
+                        📦
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm md:text-base truncate">{product.product_name}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{product.category}</p>
+                      </div>
                     </div>
                     <Badge variant="outline" className={`shrink-0 text-[10px] ${phaseStyles[product.trend_phase] ?? phaseStyles.stable}`}>
                       {product.trend_phase ?? "Stable"}
