@@ -21,6 +21,13 @@ const colorMap: Record<string, string> = {
   watch: "text-warning",
 };
 
+const bgColorMap: Record<string, string> = {
+  total_products: "bg-primary/10",
+  hot: "bg-destructive/10",
+  rising: "bg-success/10",
+  watch: "bg-warning/10",
+};
+
 const labelMap: Record<string, string> = {
   total_products: "Total Products",
   hot: "Hot Products",
@@ -89,8 +96,8 @@ const Dashboard = () => {
       )}
 
       <div>
-        <h1 className="text-xl md:text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1 text-sm">Track your TikTok Shop product performance</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-1 text-sm md:text-base">Track your TikTok Shop product performance</p>
       </div>
 
       {isLoading ? (
@@ -108,16 +115,18 @@ const Dashboard = () => {
             const value = stats?.[key];
             const change = stats?.[`${key}_change`];
             return (
-              <div key={key} className="rounded-xl border border-border bg-card p-4 md:p-5 space-y-2 md:space-y-3 hover:border-primary/30 transition-colors">
+              <div key={key} className="rounded-xl border border-border bg-card p-4 md:p-5 space-y-3 md:space-y-4 hover:border-primary/40 hover:shadow-[0_0_24px_-8px_rgba(0,255,133,0.25)] transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs md:text-sm text-muted-foreground">{labelMap[key]}</span>
-                  <Icon className={`h-4 w-4 ${colorMap[key]}`} />
+                  <span className="text-sm md:text-base font-medium text-muted-foreground">{labelMap[key]}</span>
+                  <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${bgColorMap[key]}`}>
+                    <Icon className={`h-4 w-4 ${colorMap[key]}`} />
+                  </div>
                 </div>
                 <div className="flex items-end gap-2">
-                  <span className="text-2xl md:text-3xl font-bold tracking-tight">
+                  <span className="text-3xl md:text-4xl font-bold tracking-tight">
                     {value != null ? Number(value).toLocaleString() : "—"}
                   </span>
-                  {change != null && <span className="text-xs text-success mb-1">{change}</span>}
+                  {change != null && <span className="text-sm text-success mb-1">{change}</span>}
                 </div>
               </div>
             );
@@ -128,8 +137,8 @@ const Dashboard = () => {
       {/* Products */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-sm md:text-base">{isFree ? `Top ${productLimit} Trending Products` : "Trending Products"}</h2>
-          <Link to="/products" className="text-xs text-primary hover:underline">View all →</Link>
+          <h2 className="font-bold text-base md:text-lg">{isFree ? `Top ${productLimit} Trending Products` : "Trending Products"}</h2>
+          <Link to="/products" className="text-sm text-primary hover:underline font-medium">View all →</Link>
         </div>
         {productsLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -141,35 +150,35 @@ const Dashboard = () => {
           <>
             {/* Desktop table */}
             <div className="hidden md:block rounded-xl border border-border overflow-hidden">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm md:text-base">
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Product</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Category</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Virality</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Trend</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Price</th>
+                    <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Product</th>
+                    <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Category</th>
+                    <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Virality</th>
+                    <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Trend</th>
+                    <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Price</th>
                   </tr>
                 </thead>
                 <tbody>
                   {products.map((product: any, i: number) => (
                     <tr key={product.id ?? i} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                      <td className="py-3 px-4 font-medium max-w-xs truncate">{product.product_name}</td>
-                      <td className="py-3 px-4 text-muted-foreground text-xs">{product.category}</td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4 font-semibold max-w-xs truncate">{product.product_name}</td>
+                      <td className="py-3.5 px-4 text-muted-foreground text-sm">{product.category}</td>
+                      <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
                             <div className="h-full rounded-full bg-primary" style={{ width: `${product.virality_score ?? 0}%` }} />
                           </div>
-                          <span className="text-xs text-muted-foreground w-7">{product.virality_score ?? 0}%</span>
+                          <span className="text-sm font-medium text-muted-foreground w-9">{product.virality_score ?? 0}%</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         <Badge variant="outline" className={phaseStyles[product.trend_phase] ?? phaseStyles.stable}>
                           {product.trend_phase ?? "Stable"}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-muted-foreground">${product.tiktok_price ?? 0}</td>
+                      <td className="py-3.5 px-4 text-muted-foreground font-medium">${product.tiktok_price ?? 0}</td>
                     </tr>
                   ))}
                   {products.length === 0 && (
@@ -185,8 +194,8 @@ const Dashboard = () => {
                 <div key={product.id ?? i} className="rounded-xl border border-border bg-card p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="font-medium text-sm truncate">{product.product_name}</p>
-                      <p className="text-xs text-muted-foreground">{product.category}</p>
+                      <p className="font-semibold text-sm md:text-base truncate">{product.product_name}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground">{product.category}</p>
                     </div>
                     <Badge variant="outline" className={`shrink-0 text-[10px] ${phaseStyles[product.trend_phase] ?? phaseStyles.stable}`}>
                       {product.trend_phase ?? "Stable"}
@@ -194,12 +203,12 @@ const Dashboard = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
                         <div className="h-full rounded-full bg-primary" style={{ width: `${product.virality_score ?? 0}%` }} />
                       </div>
-                      <span className="text-xs text-muted-foreground">{product.virality_score ?? 0}%</span>
+                      <span className="text-sm text-muted-foreground">{product.virality_score ?? 0}%</span>
                     </div>
-                    <span className="text-sm text-muted-foreground">${product.tiktok_price ?? 0}</span>
+                    <span className="text-sm md:text-base font-medium text-muted-foreground">${product.tiktok_price ?? 0}</span>
                   </div>
                 </div>
               ))}
@@ -212,7 +221,7 @@ const Dashboard = () => {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4 md:p-6">
-        <h2 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">Recent Activity</h2>
+        <h2 className="font-bold mb-3 md:mb-4 text-base md:text-lg">Recent Activity</h2>
         <div className="space-y-3">
           {[
             { text: "New hot product detected: LED Sunset Lamp", time: "2 min ago" },
@@ -221,8 +230,8 @@ const Dashboard = () => {
             { text: "New supplier match: Beauty Tools Co.", time: "3 hrs ago" },
           ].map((item, i) => (
             <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0 gap-2">
-              <span className="text-xs md:text-sm truncate">{item.text}</span>
-              <span className="text-xs text-muted-foreground shrink-0">{item.time}</span>
+              <span className="text-sm md:text-base truncate">{item.text}</span>
+              <span className="text-sm text-muted-foreground shrink-0">{item.time}</span>
             </div>
           ))}
         </div>
