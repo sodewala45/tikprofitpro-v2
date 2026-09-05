@@ -187,7 +187,7 @@ const Dashboard = () => {
                           <span className="truncate">{product.product_name}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-muted-foreground text-sm">{product.category}</td>
+                      <td className="py-3.5 px-4 text-sky-300/90 text-sm">{product.category}</td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2">
                           <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
@@ -238,7 +238,7 @@ const Dashboard = () => {
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-sm md:text-base truncate">{product.product_name}</p>
-                        <p className="text-xs md:text-sm text-muted-foreground">{product.category}</p>
+                        <p className="text-xs md:text-sm text-sky-300/90">{product.category}</p>
                       </div>
                     </div>
                     <Badge variant="outline" className={`shrink-0 text-[10px] ${phaseStyles[product.trend_phase] ?? phaseStyles.stable}`}>
