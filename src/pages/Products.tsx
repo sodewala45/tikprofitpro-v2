@@ -227,8 +227,8 @@ const Products = () => {
     <div className="space-y-6 animate-slide-up pb-20 md:pb-6">
 
       <div>
-        <h1 className="text-xl md:text-2xl font-bold tracking-tight">TikTok Shop Intelligence</h1>
-        <p className="text-muted-foreground mt-1 text-sm">Products · New Shops · UGC & AIGC Creators</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">TikTok Shop Intelligence</h1>
+        <p className="text-muted-foreground mt-1 text-sm md:text-base">Products · New Shops · UGC & AIGC Creators</p>
       </div>
 
       <div className="flex gap-2 border-b border-border pb-0">
@@ -288,9 +288,9 @@ const Products = () => {
               { label:"New This Month", value:items.filter((p:any) => isNewProduct(p, 30)).length || "—", icon:"⚡", color:"text-green-400" },
               { label:"Your Plan",      value:isFree ? "Free" : "Pro", icon:"👑", color:"text-amber-400"  },
             ].map((s,i) => (
-              <div key={i} className="rounded-xl border border-border bg-card p-3">
-                <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><span>{s.icon}</span>{s.label}</div>
-                <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
+              <div key={i} className="rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:shadow-[0_0_24px_-8px_rgba(0,255,133,0.25)] transition-all">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1.5"><span className="text-base">{s.icon}</span>{s.label}</div>
+                <div className={`text-2xl md:text-3xl font-bold ${s.color}`}>{s.value}</div>
               </div>
             ))}
           </div>
@@ -303,19 +303,19 @@ const Products = () => {
             <>
               {/* Desktop Table */}
               <div className="hidden md:block rounded-xl border border-border overflow-hidden">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm md:text-base">
                   <thead>
                     <tr className="border-b border-border bg-muted/30">
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Product</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Category</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Virality</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Trend</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Price</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">GMV 7d</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Views</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Ad Spend</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Image</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Supplier</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Product</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Category</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Virality</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Trend</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Price</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">GMV 7d</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Views</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Ad Spend</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Image</th>
+                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Supplier</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -323,64 +323,64 @@ const Products = () => {
                       <tr key={product.id ?? product.product_name ?? i}
                         className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors cursor-pointer"
                         onClick={() => setSelectedProduct(product)}>
-                        <td className="py-2 px-4 font-medium max-w-[240px]">
-                          <div className="flex items-center gap-2">
+                        <td className="py-3 px-4 font-medium max-w-[240px]">
+                          <div className="flex items-center gap-3">
                             {product.thumbnail_url ? (
                               <img src={product.thumbnail_url}
                                 alt={product.product_name}
-                                className="w-9 h-9 rounded-lg object-cover shrink-0 border border-border"
+                                className="w-11 h-11 rounded-lg object-cover shrink-0 border border-border"
                                 onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
                               />
                             ) : (
-                              <div className="w-9 h-9 rounded-lg bg-muted/50 shrink-0 flex items-center justify-center text-sm border border-border">📦</div>
+                              <div className="w-11 h-11 rounded-lg bg-muted/50 shrink-0 flex items-center justify-center text-base border border-border">📦</div>
                             )}
                             <div className="min-w-0">
                               <div className="flex gap-1 mb-0.5">
                                 {isNewProduct(product, 7) && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">🔥</span>}
                                 {isNewProduct(product, 30) && !isNewProduct(product, 7) && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">⚡</span>}
                               </div>
-                              <span className="truncate block text-sm">{product.product_name}</span>
+                              <span className="truncate block text-sm md:text-base font-semibold">{product.product_name}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-2 px-4 text-muted-foreground text-xs max-w-[100px] truncate">{product.category}</td>
-                        <td className="py-2 px-4">
+                        <td className="py-3 px-4 text-muted-foreground text-sm max-w-[100px] truncate">{product.category}</td>
+                        <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div className="w-12 h-2 rounded-full bg-muted overflow-hidden">
                               <div className="h-full rounded-full bg-primary" style={{ width: `${product.virality_score ?? 0}%` }} />
                             </div>
-                            <span className="text-xs text-muted-foreground w-7">{product.virality_score ?? 0}%</span>
+                            <span className="text-sm font-medium text-muted-foreground w-9">{product.virality_score ?? 0}%</span>
                           </div>
                         </td>
-                        <td className="py-2 px-4">
+                        <td className="py-3 px-4">
                           <Badge variant="outline" className={phaseStyles[product.trend_phase] ?? phaseStyles.stable}>
                             {product.trend_phase ?? "Stable"}
                           </Badge>
                         </td>
-                        <td className="py-2 px-4 text-muted-foreground">${product.tiktok_price ?? 0}</td>
-                        <td className="py-2 px-4 text-green-400 font-medium text-xs">{formatCurrency(product.gmv_7d)}</td>
-                        <td className="py-2 px-4 text-muted-foreground text-xs">
+                        <td className="py-3 px-4 text-muted-foreground font-medium">${product.tiktok_price ?? 0}</td>
+                        <td className="py-3 px-4 text-green-400 font-semibold text-sm">{formatCurrency(product.gmv_7d)}</td>
+                        <td className="py-3 px-4 text-muted-foreground text-sm">
                           {product.video_views && product.video_views > 0 ? formatNumber(product.video_views) : <span className="opacity-30">N/A</span>}
                         </td>
-                        <td className="py-2 px-4 text-amber-400 text-xs font-medium">
+                        <td className="py-3 px-4 text-amber-400 text-sm font-medium">
                           {product.ad_spend && product.ad_spend > 0 ? formatCurrency(product.ad_spend) : <span className="opacity-30">N/A</span>}
                         </td>
-                        <td className="py-2 px-4">
+                        <td className="py-3 px-4">
                           {product.thumbnail_url ? (
                             <button
                               onClick={e => { e.stopPropagation(); setImageModal(product); }}
-                              className="flex items-center gap-1 text-xs text-primary hover:underline">
-                              <Eye className="h-3 w-3" /> Image
+                              className="flex items-center gap-1 text-sm text-primary hover:underline">
+                              <Eye className="h-3.5 w-3.5" /> Image
                             </button>
                           ) : (
-                            <span className="text-xs opacity-30">—</span>
+                            <span className="text-sm opacity-30">—</span>
                           )}
                         </td>
-                        <td className="py-2 px-4">
+                        <td className="py-3 px-4">
                           <Button variant="outline" size="sm"
-                            className="text-xs border-primary/30 text-primary hover:bg-primary/10"
+                            className="text-sm border-primary/30 text-primary hover:bg-primary/10"
                             onClick={(e) => handleFindSupplier(product, e)}>
-                            <Factory className="h-3 w-3 mr-1" /> Source
+                            <Factory className="h-3.5 w-3.5 mr-1" /> Source
                           </Button>
                         </td>
                       </tr>
