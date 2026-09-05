@@ -99,14 +99,21 @@ const Landing = () => {
                 app.tikprofitpro.shop/dashboard
               </div>
             </div>
-            <img
-              src="/screenshots/dashboard-preview.png"
-              alt="TikProfitPro live dashboard showing trending TikTok Shop products, virality scores, and profit data"
+            <video
+              src="/screenshots/dashboard-demo.mp4"
+              poster="/screenshots/dashboard-preview.png"
               className="w-full block"
-            />
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+            >
+              Your browser does not support embedded video.
+            </video>
           </div>
           <p className="text-center text-xs md:text-sm mt-4" style={{ color: "#666" }}>
-            The live TikProfitPro dashboard — real-time trending product data for TikTok Shop sellers.
+            See TikProfitPro in action — from spotting a trending product to sourcing a supplier, in seconds.
           </p>
         </div>
       </SectionWrapper>
