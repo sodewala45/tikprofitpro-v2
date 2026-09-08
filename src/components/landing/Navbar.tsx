@@ -8,6 +8,8 @@ const navLinks = [
   { label: "Features", href: "/#features" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
+  { label: "Calculator", href: "/calculator" },
+  { label: "Suppliers", href: "/suppliers" },
   { label: "Tutorials", href: "/tutorials" },
   { label: "Blog", href: "https://blog.tikprofitpro.shop", external: true },
 ];
