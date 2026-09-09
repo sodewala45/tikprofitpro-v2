@@ -13,6 +13,7 @@ import Products from "./pages/Products";
 import Suppliers from "./pages/Suppliers";
 import ProfitCalculator from "./pages/ProfitCalculator";
 import Tutorials from "./pages/Tutorials";
+import Demo from "./pages/Demo";
 
 import Pricing from "./pages/Pricing";
 
