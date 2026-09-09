@@ -13,6 +13,7 @@ import Products from "./pages/Products";
 import Suppliers from "./pages/Suppliers";
 import ProfitCalculator from "./pages/ProfitCalculator";
 import Tutorials from "./pages/Tutorials";
+import Demo from "./pages/Demo";
 
 import Pricing from "./pages/Pricing";
 
@@ -41,7 +42,7 @@ const App = () => (
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/calculator" element={<Layout><ProfitCalculator /></Layout>} />
             <Route path="/tutorials" element={<Tutorials />} />
-            <Route path="/demo" element={<Tutorials />} />
+            <Route path="/demo" element={<Demo />} />
             
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />

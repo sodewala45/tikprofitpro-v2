@@ -7,56 +7,57 @@ type Meta = { title: string; description: string };
 
 const routeMeta: Record<string, Meta> = {
   "/": {
-    title: "TikProfitPro — Find Winning TikTok Shop Products Fast",
+    title: "TikProfitPro — TikTok Shop Product Research Tool",
     description:
-      "Discover trending TikTok Shop products before they go viral. Track virality scores, GMV and supplier prices in one dashboard built for TikTok sellers.",
+      "Find winning TikTok Shop products with virality scores, new shops, and top creators. Start free.",
   },
   "/calculator": {
-    title: "Free TikTok Shop Profit Calculator — Fees Included",
+    title: "Profit Calculator — TikProfitPro",
     description:
-      "Calculate true TikTok Shop profit per unit after product cost, shipping and the TikTok referral fee. Enter your numbers and see net profit and margin instantly.",
+      "Calculate your TikTok Shop product profit margins instantly, including fees and shipping costs.",
   },
   "/suppliers": {
-    title: "Verified TikTok Shop Supplier Directory for Sellers",
+    title: "Supplier Directory — TikProfitPro",
     description:
-      "Browse a curated directory of verified suppliers for TikTok Shop sellers, with categories, shipping times and minimum orders so you can source with confidence.",
+      "Browse verified suppliers for trending TikTok Shop products to source and sell.",
   },
   "/demo": {
-    title: "TikProfitPro Product Demo — See the Tool in Action",
+    title: "Watch Demo — TikProfitPro",
     description:
-      "Watch a full walkthrough of TikProfitPro in action. See product research, virality scores, supplier matching and the profit calculator demonstrated step by step.",
+      "See how TikProfitPro helps you find winning TikTok Shop products in minutes.",
   },
   "/tutorials": {
-    title: "TikProfitPro Tutorials — Video Guides for Sellers",
+    title: "Tutorials — TikProfitPro",
     description:
-      "Watch step-by-step TikProfitPro video tutorials covering product research, virality scores, supplier matching and listing products on TikTok Shop in minutes.",
+      "Step-by-step video guides on product research, virality scores and listing on TikTok Shop.",
   },
   "/pricing": {
-    title: "TikProfitPro Pricing — Free, Pro and Ultimate Plans",
+    title: "Pricing Plans — TikProfitPro",
     description:
-      "Compare TikProfitPro plans side by side, from the free tier with 5 credits to Pro and Ultimate access for product data and supplier tools. Cancel anytime you like.",
+      "Compare TikProfitPro plans: Starter, Pro, and Ultimate. Choose the right plan for your business.",
   },
   "/signup": {
-    title: "Create Your Free TikProfitPro Account — 5 Credits",
+    title: "Sign Up — TikProfitPro",
     description:
-      "Sign up for a free TikProfitPro account and get 5 credits to research trending TikTok Shop products, check supplier prices and calculate real profit margins.",
+      "Create your free TikProfitPro account and start finding winning TikTok Shop products today.",
   },
   "/login": {
-    title: "Log In to TikProfitPro — TikTok Shop Research Tools",
+    title: "Log In — TikProfitPro",
     description:
-      "Log in to TikProfitPro to access your dashboard with trending TikTok Shop products, virality scores, verified suppliers and your saved profit calculations.",
+      "Log in to your TikProfitPro account to access product research tools.",
   },
   "/terms": {
-    title: "TikProfitPro Terms of Service — Accounts and Billing",
+    title: "Terms of Service — TikProfitPro",
     description:
-      "Read the TikProfitPro Terms of Service covering account rules, subscriptions and billing, cancellation, intellectual property, liability limits and governing law.",
+      "Read the terms of service for using TikProfitPro's TikTok Shop research platform.",
   },
   "/refund": {
-    title: "TikProfitPro Refund Policy — 7-Day Money-Back Deal",
+    title: "Refund Policy — TikProfitPro",
     description:
-      "TikProfitPro offers a 7-day money-back guarantee on new subscriptions. Learn how to request a refund, typical processing times and how cancellation works later.",
+      "Read TikProfitPro's refund policy for Pro and Ultimate subscription plans.",
   },
 };
+
 
 export default function Seo() {
   const { pathname } = useLocation();
