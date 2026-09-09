@@ -10,7 +10,6 @@ const navLinks = [
   { label: "Pricing", href: "/pricing" },
   { label: "Calculator", href: "/calculator" },
   { label: "Suppliers", href: "/suppliers" },
-  { label: "Demo", href: "/demo" },
   { label: "Tutorials", href: "/tutorials" },
   { label: "Blog", href: "https://blog.tikprofitpro.shop", external: true },
 ];
