@@ -1,5 +1,8 @@
 import { useState } from "react";
 import Navbar from "@/components/landing/Navbar";
+import Footer from "@/components/landing/Footer";
+import Layout from "@/components/Layout";
+import { useAuth } from "@/contexts/AuthContext";
 import { Calculator, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +17,7 @@ interface ProfitResult {
   [key: string]: any;
 }
 
-const ProfitCalculator = () => {
+const ProfitCalculatorContent = () => {
   const [form, setForm] = useState({
     product_cost: "",
     shipping_cost: "",
@@ -145,4 +148,25 @@ const ProfitCalculator = () => {
   );
 };
 
-export default ProfitCalculator;
+export default function ProfitCalculator() {
+  const { user } = useAuth();
+
+  if (user) {
+    return (
+      <Layout>
+        <ProfitCalculatorContent />
+      </Layout>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      <main className="flex-1 pt-28 pb-16 px-4 md:px-6">
+        <ProfitCalculatorContent />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
