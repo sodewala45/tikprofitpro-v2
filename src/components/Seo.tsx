@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
 
 const SITE = "https://tikprofitpro.shop";
+const OG_IMAGE = "https://tikprofitpro.shop/og-image.png";
 
 type Meta = { title: string; description: string };
 
@@ -74,8 +75,13 @@ export default function Seo() {
       <meta property="og:title" content={meta.title} />
       <meta property="og:description" content={meta.description} />
       <meta property="og:url" content={url} />
+      <meta property="og:image" content={OG_IMAGE} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={meta.title} />
       <meta name="twitter:description" content={meta.description} />
+      <meta name="twitter:image" content={OG_IMAGE} />
     </Helmet>
   );
 }
