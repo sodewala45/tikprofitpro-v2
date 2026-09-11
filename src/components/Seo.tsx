@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
 
 const SITE = "https://tikprofitpro.shop";
+const OG_IMAGE = "https://tikprofitpro.shop/og-image.png";
 
 type Meta = { title: string; description: string };
 
