@@ -1,9 +1,10 @@
-import { LayoutDashboard, Package, Calculator, Settings, Loader2, Crown, LogIn, UserPlus, PlayCircle } from "lucide-react";
+import { LayoutDashboard, Package, Calculator, Settings, Loader2, LogIn, UserPlus, PlayCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
@@ -11,98 +12,106 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
 import { usePlan } from "@/hooks/usePlan";
 
-const navItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Products", url: "/products", icon: Package },
-  { title: "Profit Calculator", url: "/calculator", icon: Calculator },
-  { title: "Tutorials", url: "/tutorials", icon: PlayCircle },
-  { title: "Settings", url: "/settings", icon: Settings },
+const groups = [
+  {
+    label: "Research",
+    items: [
+      { title: "Overview", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Products", url: "/products", icon: Package },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { title: "Profit calculator", url: "/calculator", icon: Calculator },
+      { title: "Tutorials", url: "/tutorials", icon: PlayCircle },
+    ],
+  },
+  {
+    label: "Account",
+    items: [{ title: "Settings", url: "/settings", icon: Settings }],
+  },
 ];
+
+const itemCls =
+  "flex items-center gap-2.5 h-8 px-2.5 rounded-md text-[13px] text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground transition-colors";
+const activeCls = "bg-sidebar-accent text-foreground font-medium";
 
 export function AppSidebar() {
   const { checkout, loading } = useCheckout();
   const { user } = useAuth();
-
-  const { isPaid } = usePlan();
+  const { isPaid, label } = usePlan();
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <NavLink to={user ? "/dashboard" : "/"} className="flex items-center gap-2.5 group-data-[collapsible=icon]:justify-center cursor-pointer hover:opacity-80 transition-opacity block">
-          <img src="/tikprofitpro_icon.svg" alt="TikProfitPro" className="h-8 w-8 rounded-lg shrink-0 hidden group-data-[collapsible=icon]:block" />
-          <img src="/tikprofitpro_logo.svg" alt="TikProfitPro" style={{ height: 28 }} className="group-data-[collapsible=icon]:hidden" />
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+      <SidebarHeader className="h-14 px-4 flex flex-row items-center border-b border-sidebar-border">
+        <NavLink to={user ? "/dashboard" : "/"} className="flex items-center group-data-[collapsible=icon]:justify-center">
+          <img src="/tikprofitpro_icon.svg" alt="TikProfitPro" className="h-7 w-7 rounded-md shrink-0 hidden group-data-[collapsible=icon]:block" />
+          <img src="/tikprofitpro_logo.svg" alt="TikProfitPro" style={{ height: 24 }} className="group-data-[collapsible=icon]:hidden" />
         </NavLink>
       </SidebarHeader>
 
-      <SidebarContent className="pt-4">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/"}
-                      className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                      activeClassName="bg-sidebar-accent text-primary font-medium"
-                    >
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="pt-2">
+        {groups.map((g) => (
+          <SidebarGroup key={g.label} className="py-1">
+            <SidebarGroupLabel className="h-7 px-2.5 text-[11px] font-medium text-muted-foreground/80">{g.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {g.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title} className="h-8 p-0">
+                      <NavLink to={item.url} className={itemCls} activeClassName={activeCls}>
+                        <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                        <span>{item.title}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border space-y-2">
+      <SidebarFooter className="p-3 border-t border-sidebar-border">
         {!user && (
-          <>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Log In">
-                  <NavLink to="/login" className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
-                    <LogIn className="h-4 w-4 shrink-0" />
-                    <span>Log In</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Sign Up">
-                  <NavLink to="/signup" className="flex items-center gap-3 px-3 py-2 rounded-md text-primary hover:bg-primary/10 transition-colors font-medium">
-                    <UserPlus className="h-4 w-4 shrink-0" />
-                    <span>Sign Up</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </>
+          <SidebarMenu className="gap-0.5">
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Log in" className="h-8 p-0">
+                <NavLink to="/login" className={itemCls}>
+                  <LogIn className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                  <span>Log in</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Sign up" className="h-8 p-0">
+                <NavLink to="/signup" className={`${itemCls} text-foreground font-medium`}>
+                  <UserPlus className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                  <span>Sign up</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         )}
+
         {user && !isPaid && (
-          <Button
-            onClick={() => checkout("pro")}
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold shadow-lg group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:h-10"
-          >
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <Crown className="h-4 w-4 shrink-0" />
-                <span className="group-data-[collapsible=icon]:hidden">Upgrade to Pro – $39/mo</span>
-              </>
-            )}
-          </Button>
+          <div className="rounded-lg border border-border p-3 group-data-[collapsible=icon]:hidden">
+            <div className="text-[12px] text-muted-foreground">Current plan</div>
+            <div className="text-[13px] font-medium text-foreground">{label} · 10 products</div>
+            <button onClick={() => checkout("pro")} disabled={loading} className="app-btn w-full mt-3">
+              {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Upgrade to Pro · $39/mo"}
+            </button>
+          </div>
+        )}
+        {user && isPaid && (
+          <div className="px-2.5 text-[12px] text-muted-foreground group-data-[collapsible=icon]:hidden">
+            {label} plan
+          </div>
         )}
       </SidebarFooter>
     </Sidebar>

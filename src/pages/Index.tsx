@@ -37,9 +37,9 @@ const labelMap: Record<string, string> = {
 };
 
 const phaseStyles: Record<string, string> = {
-  hot: "border-red-500/30 bg-red-500/10 text-red-400",
-  rising: "border-green-500/30 bg-green-500/10 text-green-400",
-  watch: "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
+  hot: "border-border bg-red-50 text-red-600",
+  rising: "border-border bg-emerald-50 text-emerald-700",
+  watch: "border-border bg-amber-50 text-amber-700",
   stable: "border-gray-500/30 bg-gray-500/10 text-gray-400",
 };
 
@@ -68,15 +68,15 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 md:space-y-8 animate-slide-up pb-20 md:pb-6">
       {isFree && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="rounded-lg border border-border bg-amber-50 p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-start sm:items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+            <AlertCircle className="h-5 w-5 text-amber-700 shrink-0 mt-0.5 sm:mt-0" />
             <p className="text-sm font-medium">
               You're on the <span className="font-bold">Free Plan</span> — showing {products.length} products. Upgrade to Pro for full access.
             </p>
           </div>
           <Link to="/pricing">
-            <Button variant="outline" className="border-amber-500/40 text-amber-400 hover:bg-amber-500/10 font-semibold shrink-0 w-full sm:w-auto min-h-[44px]">
+            <Button variant="outline" className="border-amber-500/40 text-amber-700 hover:bg-amber-50 font-semibold shrink-0 w-full sm:w-auto min-h-[44px]">
               Upgrade to Pro →
             </Button>
           </Link>
@@ -93,7 +93,7 @@ const Dashboard = () => {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : error ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">
           Failed to load stats. Please try again later.
         </div>
       ) : (
@@ -103,7 +103,7 @@ const Dashboard = () => {
             const value = stats?.[key];
             const change = stats?.[`${key}_change`];
             return (
-              <div key={key} className="rounded-xl border border-border bg-card p-4 md:p-5 space-y-3 md:space-y-4 hover:border-primary/40 hover:shadow-[0_0_24px_-8px_rgba(0,255,133,0.25)] transition-all">
+              <div key={key} className="rounded-lg border border-border bg-card p-4 md:p-5 space-y-3 md:space-y-4 hover:border-primary/40  transition-all">
                 <div className="flex items-center justify-between">
                   <span className="text-sm md:text-base font-medium text-muted-foreground">{labelMap[key]}</span>
                   <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${bgColorMap[key]}`}>
@@ -133,11 +133,11 @@ const Dashboard = () => {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : productsError ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">Failed to load products.</div>
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">Failed to load products.</div>
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden md:block rounded-xl border border-border overflow-hidden">
+            <div className="hidden md:block rounded-lg border border-border overflow-hidden">
               <table className="w-full text-sm md:text-base">
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
@@ -170,12 +170,12 @@ const Dashboard = () => {
                             className="w-11 h-11 rounded-lg bg-muted/50 shrink-0 items-center justify-center text-base border border-border"
                             style={{ display: product.thumbnail_url ? "none" : "flex" }}
                           >
-                            📦
+                            <Package className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
                           </div>
                           <span className="truncate">{product.product_name}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-sky-300/90 text-sm">{product.category}</td>
+                      <td className="py-3.5 px-4 text-muted-foreground text-sm">{product.category}</td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2">
                           <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
@@ -202,7 +202,7 @@ const Dashboard = () => {
             {/* Mobile cards */}
             <div className="md:hidden space-y-3">
               {products.map((product: any, i: number) => (
-                <div key={product.id ?? i} className="rounded-xl border border-border bg-card p-4 space-y-2">
+                <div key={product.id ?? i} className="rounded-lg border border-border bg-card p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
                       {product.thumbnail_url ? (
@@ -222,11 +222,11 @@ const Dashboard = () => {
                         className="w-11 h-11 rounded-lg bg-muted/50 shrink-0 items-center justify-center text-base border border-border"
                         style={{ display: product.thumbnail_url ? "none" : "flex" }}
                       >
-                        📦
+                        <Package className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-sm md:text-base truncate">{product.product_name}</p>
-                        <p className="text-xs md:text-sm text-sky-300/90">{product.category}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{product.category}</p>
                       </div>
                     </div>
                     <Badge variant="outline" className={`shrink-0 text-[10px] ${phaseStyles[product.trend_phase] ?? phaseStyles.stable}`}>
@@ -252,7 +252,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4 md:p-6">
+      <div className="rounded-lg border border-border bg-card p-4 md:p-6">
         <h2 className="font-bold mb-3 md:mb-4 text-base md:text-lg">Recent Activity</h2>
         <div className="space-y-3">
           {[
@@ -270,16 +270,16 @@ const Dashboard = () => {
       </div>
 
       {isFree && (
-        <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="rounded-lg border border-border bg-gradient-to-r from-emerald-500/10 to-teal-500/10 p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Crown className="h-6 w-6 text-emerald-400 shrink-0" />
+            <Crown className="h-6 w-6 text-emerald-700 shrink-0" />
             <p className="text-sm font-medium">
               Unlock all products, supplier matching & profit calculator –{" "}
-              <span className="text-emerald-400 font-semibold">Upgrade to Pro $39/mo</span>
+              <span className="text-emerald-700 font-semibold">Upgrade to Pro $39/mo</span>
             </p>
           </div>
           <Button onClick={() => checkout("pro")} disabled={checkoutLoading}
-            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold shrink-0 w-full sm:w-auto min-h-[44px]">
+            className="bg-foreground text-background hover:opacity-90 font-semibold shrink-0 w-full sm:w-auto min-h-[44px]">
             {checkoutLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade Now"}
           </Button>
         </div>

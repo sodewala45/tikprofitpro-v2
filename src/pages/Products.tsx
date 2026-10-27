@@ -1,79 +1,55 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Search, Loader2, X, TrendingUp, ShoppingCart, Users, Star,
-  Factory, Lock, ChevronLeft, ChevronRight, Eye,
-  DollarSign, Zap, Clock, Store, Video, UserCheck, ShoppingBag
+  Search, Loader2, X, Lock, ChevronLeft, ChevronRight, ChevronDown, ArrowUpRight,
+  ArrowDown, ArrowUp, Package, ShoppingBag, Factory, ExternalLink,
 } from "lucide-react";
 import ListProductModal from "@/components/ListProductModal";
 import { Link } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { usePlan } from "@/hooks/usePlan";
 import { calcProfit, DEFAULT_CREATOR_PCT, DEFAULT_REFERRAL_PCT } from "@/lib/fees";
 
+/* ─────────────────────────── formatting ─────────────────────────── */
 
-const phaseStyles: Record<string, string> = {
-  hot:     "border-red-500/30 bg-red-500/10 text-red-400",
-  rising:  "border-green-500/30 bg-green-500/10 text-green-400",
-  watch:   "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
-  stable:  "border-gray-500/30 bg-gray-500/10 text-gray-400",
+const fmtNum = (n: any) => {
+  const v = Number(n);
+  if (!Number.isFinite(v) || v === 0) return "—";
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
+  return Math.round(v).toLocaleString();
 };
 
-const platforms = [
-  { id: "alibaba",    label: "Alibaba",    cost: "1 credit", color: "bg-[#E8650A] text-white hover:bg-[#C25408] border-none cursor-pointer opacity-100 rounded-lg p-3" },
-  { id: "aliexpress", label: "AliExpress", cost: "1 credit", color: "bg-[#CC0000] text-white hover:bg-[#A30000] border-none cursor-pointer opacity-100 rounded-lg p-3" },
-  { id: "amazon",     label: "Amazon",     cost: "1 credit", color: "bg-[#FF9900] text-black hover:bg-[#D98200] border-none cursor-pointer opacity-100 rounded-lg p-3" },
-];
-
-const TIME_FILTERS = [
-  { id: "all",    label: "All Time",      days: null  },
-  { id: "7d",     label: "Last 7 Days",   days: 7    },
-  { id: "30d",    label: "Last 30 Days",  days: 30   },
-  { id: "90d",    label: "Last 90 Days",  days: 90   },
-  { id: "6m",     label: "Last 6 Months", days: 180  },
-  { id: "12m",    label: "Last 12 Months",days: 365  },
-];
-
-const SORT_OPTIONS = [
-  { id: "virality", label: "Virality Score" },
-  { id: "newest",   label: "Newest First"   },
-  { id: "gmv",      label: "GMV"            },
-  { id: "views",    label: "Views"          },
-  { id: "price",    label: "Price"          },
-];
-
-const formatNumber = (n: number) => {
-  if (!n) return "0";
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`;
-  return n.toString();
+const fmtUsd = (n: any) => {
+  const v = Number(n);
+  if (!Number.isFinite(v) || v === 0) return "—";
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`;
+  if (v >= 1_000) return `$${(v / 1_000).toFixed(1)}K`;
+  return `$${v.toFixed(2)}`;
 };
 
-const formatCurrency = (n: number) => {
-  if (!n) return "$0";
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000)     return `$${(n / 1_000).toFixed(1)}K`;
-  return `$${n}`;
+const fmtPct = (n: any) => {
+  const v = Number(n);
+  if (!Number.isFinite(v) || v === 0) return null;
+  return `${v > 0 ? "+" : ""}${v >= 100 || v <= -100 ? Math.round(v) : v.toFixed(1)}%`;
 };
+
+const leafCategory = (c?: string) => (c ?? "").split(">").map(s => s.trim()).filter(Boolean).pop() ?? "";
 
 const isNewProduct = (product: any, days: number | null) => {
   if (!days) return false;
   const raw = product.created_at || product.first_seen_at || product.date_added;
   if (!raw) return false;
   const createdAt = new Date(raw.includes("T") ? raw : raw.replace(" ", "T") + "Z");
-  const diff = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-  return diff <= days;
+  return (Date.now() - createdAt.getTime()) / 86_400_000 <= days;
 };
 
 // Data-quality guards: hide values that are clearly ingestion errors instead of showing them as facts.
 const adSpendValue = (p: any): number | null => {
   const v = Number(p?.ad_spend);
   if (!Number.isFinite(v) || v <= 0) return null;
-  // Known ingestion bug: ad_spend sometimes mirrors video_views.
-  if (Number(p?.video_views) > 0 && v === Number(p.video_views)) return null;
+  if (Number(p?.video_views) > 0 && v === Number(p.video_views)) return null; // known ingestion bug
   return v;
 };
 
@@ -88,44 +64,163 @@ const priceLooksWrong = (p: any): boolean => {
   return price >= 1000;
 };
 
-const PriceCell = ({ product }: { product: any }) =>
-  priceLooksWrong(product)
-    ? <span className="text-amber-400" title="This price looks inconsistent with sales data and is being reviewed">${product.tiktok_price ?? "—"} ⚠</span>
-    : <>${product.tiktok_price}</>;
+const Price = ({ p }: { p: any }) =>
+  priceLooksWrong(p)
+    ? <span className="whitespace-nowrap text-muted-foreground underline decoration-dotted underline-offset-2" title="This price doesn't match the sales data and is being reviewed">Checking</span>
+    : <>${Number(p.tiktok_price).toFixed(2)}</>;
 
-const dash = (v: any, fmt: (n: number) => string = String) =>
-  v === null || v === undefined || v === "" || Number(v) === 0 ? "—" : fmt(Number(v));
+/* ─────────────────────────── small pieces ─────────────────────────── */
+
+const STAGE: Record<string, { label: string; text: string; bg: string; dot: string }> = {
+  hot:    { label: "Hot",    text: "#B42318", bg: "#FEF3F2", dot: "#F04438" },
+  rising: { label: "Rising", text: "#067647", bg: "#ECFDF3", dot: "#12B76A" },
+  watch:  { label: "Watch",  text: "#B54708", bg: "#FFFAEB", dot: "#F79009" },
+  stable: { label: "Stable", text: "#475467", bg: "#F2F4F7", dot: "#98A2B3" },
+};
+
+const StagePill = ({ phase }: { phase?: string }) => {
+  const s = STAGE[phase ?? "stable"] ?? STAGE.stable;
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[12px] font-medium whitespace-nowrap" style={{ color: s.text, background: s.bg }}>
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.dot }} />
+      {s.label}
+    </span>
+  );
+};
+
+const Score = ({ v }: { v: any }) => {
+  const n = Math.max(0, Math.min(100, Number(v) || 0));
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <div className="h-1 w-10 rounded-full bg-muted overflow-hidden">
+        <div className="h-full rounded-full bg-foreground/70" style={{ width: `${n}%` }} />
+      </div>
+      <span className="w-6 text-right tabular-nums">{n}</span>
+    </div>
+  );
+};
+
+const Delta = ({ v }: { v: any }) => {
+  const t = fmtPct(v);
+  if (!t) return null;
+  return <div className={`text-[11px] tabular-nums ${Number(v) > 0 ? "app-up" : "app-down"}`}>{t}</div>;
+};
+
+const Thumb = ({ src, alt, size = 40 }: { src?: string; alt: string; size?: number }) => {
+  const [broken, setBroken] = useState(false);
+  return src && !broken ? (
+    <img src={src} alt={alt} onError={() => setBroken(true)} loading="lazy"
+      className="rounded-md object-cover shrink-0 border border-border bg-muted" style={{ width: size, height: size }} />
+  ) : (
+    <div className="rounded-md shrink-0 border border-border bg-muted flex items-center justify-center text-muted-foreground" style={{ width: size, height: size }}>
+      <Package className="h-4 w-4" strokeWidth={1.5} />
+    </div>
+  );
+};
+
+type SortKey = "virality" | "gmv" | "units" | "views" | "creators" | "price" | "newest";
+
+const SortTh = ({ k, label, sort, dir, onSort, className = "" }: {
+  k: SortKey; label: string; sort: SortKey; dir: "desc" | "asc"; onSort: (k: SortKey) => void; className?: string;
+}) => (
+  <th className={`app-th app-num cursor-pointer hover:text-foreground ${sort === k ? "text-foreground" : ""} ${className}`} onClick={() => onSort(k)}>
+    <span className="inline-flex items-center gap-1">
+      {label}
+      {sort === k && (dir === "desc" ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />)}
+    </span>
+  </th>
+);
+
+const Drawer = ({ onClose, children, width = 560 }: { onClose: () => void; children: React.ReactNode; width?: number }) => createPortal(
+  <div className="fixed inset-0 z-50 flex justify-end bg-black/20" onClick={onClose}>
+    <div className="h-full w-full bg-card border-l border-border overflow-y-auto shadow-[0_0_0_1px_rgba(0,0,0,0.02),-12px_0_32px_-12px_rgba(0,0,0,0.12)] animate-in slide-in-from-right duration-200"
+      style={{ maxWidth: width }} onClick={e => e.stopPropagation()}>
+      {children}
+    </div>
+  </div>,
+  document.body
+);
+
+const DrawerHeader = ({ title, sub, onClose, left }: { title: React.ReactNode; sub?: React.ReactNode; onClose: () => void; left?: React.ReactNode }) => (
+  <div className="sticky top-0 z-10 bg-card border-b border-border px-5 py-4 flex items-start gap-3">
+    {left}
+    <div className="min-w-0 flex-1">
+      <h2 className="text-[15px] font-semibold leading-snug text-foreground line-clamp-2">{title}</h2>
+      {sub && <div className="mt-1 text-[12px] text-muted-foreground">{sub}</div>}
+    </div>
+    <button onClick={onClose} aria-label="Close" className="h-8 w-8 -mr-1 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+      <X className="h-4 w-4" />
+    </button>
+  </div>
+);
+
+const Stat = ({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) => (
+  <div className="px-4 py-3">
+    <div className="text-[12px] text-muted-foreground">{label}</div>
+    <div className="mt-0.5 text-[18px] font-semibold tabular-nums text-foreground">{value}</div>
+    {sub}
+  </div>
+);
+
+const Empty = ({ children }: { children: React.ReactNode }) => (
+  <div className="py-14 text-center text-[13px] text-muted-foreground">{children}</div>
+);
+
+const UpgradeRow = ({ text }: { text: string }) => (
+  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-t border-border bg-muted/40 px-4 py-3">
+    <div className="flex items-center gap-2 text-[13px] text-foreground">
+      <Lock className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.75} /> {text}
+    </div>
+    <Link to="/pricing" className="app-btn">Upgrade to Pro · $39/mo</Link>
+  </div>
+);
+
+/* ─────────────────────────── config ─────────────────────────── */
+
+const ADDED = [
+  { id: "all", label: "Any time", days: null },
+  { id: "7d",  label: "Last 7 days", days: 7 },
+  { id: "30d", label: "Last 30 days", days: 30 },
+  { id: "90d", label: "Last 90 days", days: 90 },
+  { id: "6m",  label: "Last 6 months", days: 180 },
+  { id: "12m", label: "Last 12 months", days: 365 },
+];
+
+const STAGES = ["all", "hot", "rising", "watch", "stable"] as const;
+
+const PLATFORMS = [
+  { id: "alibaba",    label: "Alibaba",    note: "Factories, bulk" },
+  { id: "aliexpress", label: "AliExpress", note: "Small orders" },
+  { id: "amazon",     label: "Amazon",     note: "US retail" },
+];
+
+const ITEMS_PER_PAGE = 25;
+
+/* ─────────────────────────── page ─────────────────────────── */
 
 const Products = () => {
   const queryClient = useQueryClient();
-  const [search,          setSearch]          = useState("");
+  const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [currentPage,     setCurrentPage]     = useState(1);
-  const [timeFilter,      setTimeFilter]      = useState("all");
-  const [sortBy,          setSortBy]          = useState("virality");
-  const [activeTab,       setActiveTab]       = useState<"products"|"shops"|"creators">("products");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [added, setAdded] = useState("all");
+  const [stage, setStage] = useState<(typeof STAGES)[number]>("all");
+  const [sort, setSort] = useState<SortKey>("virality");
+  const [dir, setDir] = useState<"desc" | "asc">("desc");
+  const [activeTab, setActiveTab] = useState<"products" | "shops" | "creators">("products");
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [supplierProduct, setSupplierProduct] = useState<any>(null);
-  const [supplierPlatform,setSupplierPlatform]= useState<string | null>(null);
+  const [supplierPlatform, setSupplierPlatform] = useState<string | null>(null);
   const [supplierResults, setSupplierResults] = useState<any[] | null>(null);
   const [supplierLoading, setSupplierLoading] = useState(false);
-  const [supplierError,   setSupplierError]   = useState<string | null>(null);
-  const [imageModal,      setImageModal]      = useState<any>(null);
-  const [selectedShop,    setSelectedShop]    = useState<any>(null);
+  const [supplierError, setSupplierError] = useState<string | null>(null);
+  const [selectedShop, setSelectedShop] = useState<any>(null);
   const [listProductItem, setListProductItem] = useState<any>(null);
-  const [shopSearch,      setShopSearch]      = useState("");
-  const [shopSortBy,      setShopSortBy]      = useState("gmv_total");
-  const [creatorSearch,   setCreatorSearch]   = useState("");
-  const [creatorSortBy,   setCreatorSortBy]   = useState("gmv_total");
-  const [creatorTypeFilter, setCreatorTypeFilter] = useState("all");
+  const [shopSearch, setShopSearch] = useState("");
+  const [creatorSearch, setCreatorSearch] = useState("");
+  const [creatorType, setCreatorType] = useState("all");
 
-  const ITEMS_PER_PAGE = 15;
-
-  const { data: creditsData } = useQuery({
-    queryKey: ["credits"],
-    queryFn:  () => api.getCredits(),
-    retry: false,
-  });
+  const { data: creditsData } = useQuery({ queryKey: ["credits"], queryFn: () => api.getCredits(), retry: false });
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -134,51 +229,51 @@ const Products = () => {
 
   const { data: products = [], isLoading, error } = useQuery({
     queryKey: ["products", debouncedSearch],
-    queryFn: () =>
-      debouncedSearch
-        ? api.searchProducts(debouncedSearch)
-        : api.getProducts({ limit: "100" }),
+    queryFn: () => (debouncedSearch ? api.searchProducts(debouncedSearch) : api.getProducts({ limit: "100" })),
   });
 
-  useEffect(() => { setCurrentPage(1); }, [debouncedSearch, timeFilter, sortBy]);
+  useEffect(() => { setCurrentPage(1); }, [debouncedSearch, added, stage, sort, dir]);
 
-  const productsRaw = products as any;
-  const creditInfo  = creditsData?.credits ?? creditsData ?? {};
-  const { isFree, label: planLabel } = usePlan();
-  const items       = Array.isArray(products) ? products : productsRaw?.products ?? [];
+  const creditInfo = creditsData?.credits ?? creditsData ?? {};
+  const { isFree } = usePlan();
+  const items: any[] = Array.isArray(products) ? products : (products as any)?.products ?? [];
 
-  const selectedFilter = TIME_FILTERS.find(f => f.id === timeFilter);
-  const selectedFilterDays: number | null = selectedFilter?.days ?? null;
-  const filteredItems = selectedFilterDays !== null
-    ? items.filter((p: any) => isNewProduct(p, selectedFilterDays))
-    : items;
+  const onSort = (k: SortKey) => {
+    if (k === sort) setDir(d => (d === "desc" ? "asc" : "desc"));
+    else { setSort(k); setDir(k === "price" ? "asc" : "desc"); }
+  };
 
-  const sortedItems = [...filteredItems].sort((a: any, b: any) => {
-    if (sortBy === "virality") return (b.virality_score ?? 0) - (a.virality_score ?? 0);
-    if (sortBy === "gmv")      return (b.gmv_7d ?? 0)        - (a.gmv_7d ?? 0);
-    if (sortBy === "views")    return (b.video_views ?? 0)   - (a.video_views ?? 0);
-    if (sortBy === "price")    return (a.tiktok_price ?? 0)  - (b.tiktok_price ?? 0);
-    if (sortBy === "newest") {
-      const aDate = new Date(a.created_at || a.first_seen_at || 0).getTime();
-      const bDate = new Date(b.created_at || b.first_seen_at || 0).getTime();
-      return bDate - aDate;
-    }
-    return 0;
-  });
+  const rows = useMemo(() => {
+    const days = ADDED.find(f => f.id === added)?.days ?? null;
+    let r = days !== null ? items.filter(p => isNewProduct(p, days)) : items;
+    if (stage !== "all") r = r.filter(p => (p.trend_phase ?? "stable") === stage);
+    const val = (p: any): number => {
+      switch (sort) {
+        case "gmv": return Number(p.gmv_7d) || 0;
+        case "units": return Number(p.units_sold_7d) || 0;
+        case "views": return Number(p.video_views) || 0;
+        case "creators": return Number(p.creator_count) || 0;
+        case "price": return Number(p.tiktok_price) || 0;
+        case "newest": return new Date(p.created_at || p.first_seen_at || 0).getTime();
+        default: return Number(p.virality_score) || 0;
+      }
+    };
+    return [...r].sort((a, b) => (dir === "desc" ? val(b) - val(a) : val(a) - val(b)));
+  }, [items, added, stage, sort, dir]);
 
-  const visibleItems   = isFree ? sortedItems.slice(0, 10) : sortedItems.slice(0, 100);
-  const totalPages     = Math.ceil(visibleItems.length / ITEMS_PER_PAGE);
-  const paginatedItems = visibleItems.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const visible = isFree ? rows.slice(0, 10) : rows.slice(0, 100);
+  const totalPages = Math.max(1, Math.ceil(visible.length / ITEMS_PER_PAGE));
+  const pageRows = visible.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const totalGmv = visible.reduce((s, p) => s + (Number(p.gmv_7d) || 0), 0);
+  const asOf = items[0]?.data_end_date
+    ? new Date(items[0].data_end_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    : null;
 
-  // Each supplier search gets an id; responses from an older search (other product
-  // or platform) are ignored so results never show up under the wrong product.
+  /* ── supplier lookup (unchanged behaviour) ── */
   const supplierReq = useRef(0);
 
-  const handleFindSupplier = (product: any, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const openSupplier = (product: any, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     supplierReq.current += 1;
     setSupplierLoading(false);
     setSupplierProduct(product);
@@ -187,18 +282,16 @@ const Products = () => {
     setSupplierError(null);
   };
 
-  const handleSearchPlatform = async (platform: string) => {
+  const searchPlatform = async (platform: string) => {
     if (!supplierProduct) return;
     const reqId = ++supplierReq.current;
-    const productId = supplierProduct.id;
     setSupplierPlatform(platform);
     setSupplierLoading(true);
     setSupplierResults(null);
     setSupplierError(null);
     try {
-      let data = await api.getSuppliers(productId, platform);
+      let data = await api.getSuppliers(supplierProduct.id, platform);
       if (reqId !== supplierReq.current) return;
-      // Photo search runs in a background worker: poll until it finishes (max ~3 min).
       if (data?.status === "queued" && data?.job_id) {
         for (let i = 0; i < 60; i++) {
           await new Promise(r => setTimeout(r, 3000));
@@ -208,25 +301,23 @@ const Products = () => {
           if (job.status === "no_match" || job.status === "failed") {
             data = { success: false, message: job.status === "no_match"
               ? "No supplier photo matched this product closely enough. Your credit was not used."
-              : "Photo search couldn't finish this time. Your credit was not used. Try again in a few minutes." };
+              : "The search couldn't finish this time. Your credit was not used." };
             break;
           }
         }
-        if (data?.status === "queued") data = { success: false, message: "Photo search is taking longer than usual. Results will be saved; reopen this product in a few minutes (free)." };
+        if (data?.status === "queued") data = { success: false, message: "This is taking longer than usual. Reopen the product in a few minutes; it's free." };
       }
       if (data?.success === false) {
-        // Nothing usable found: backend already refunded the credit
         setSupplierError(data?.message || "No matching suppliers found. Your credit was not used.");
         queryClient.invalidateQueries({ queryKey: ["credits"] });
       } else {
         const results = data?.suppliers ?? data?.results ?? (Array.isArray(data) ? data : []);
-        setSupplierResults(results.slice(0, 3));
+        setSupplierResults(results.slice(0, 5));
         queryClient.invalidateQueries({ queryKey: ["user-credits-nav"] });
         queryClient.invalidateQueries({ queryKey: ["credits"] });
       }
     } catch (err: any) {
       if (reqId !== supplierReq.current) return;
-      // Backend sends {"detail": {"code": "no_credits", ...}} or {"detail": "text"}
       let detail: any = null;
       try { detail = JSON.parse(err?.message ?? "")?.detail; } catch { /* plain text */ }
       if (detail?.code === "no_credits") setSupplierError("no_credits");
@@ -240,791 +331,493 @@ const Products = () => {
 
   const closeSupplier = () => { supplierReq.current += 1; setSupplierLoading(false); setSupplierProduct(null); };
 
-  const { data: shopsData }    = useQuery({ queryKey: ["shops"],    queryFn: () => api.getShops({ limit: "50", sort_by: "gmv_total" })    });
+  /* ── shops & creators ── */
+  const { data: shopsData } = useQuery({ queryKey: ["shops"], queryFn: () => api.getShops({ limit: "50", sort_by: "gmv_total" }) });
   const { data: creatorsData } = useQuery({ queryKey: ["creators"], queryFn: () => api.getCreators() });
-  // No sample/mock data: if the API returns nothing, show an empty state.
-  const shops: any[]    = shopsData?.shops       ?? [];
+  const shops: any[] = shopsData?.shops ?? [];
   const creators: any[] = creatorsData?.creators ?? [];
 
-  const filteredShops = shops
-    .filter((s: any) => !shopSearch || (s.shop_name ?? "").toLowerCase().includes(shopSearch.toLowerCase()))
-    .sort((a: any, b: any) => {
-      if (shopSortBy === "gmv_total") return (b.gmv_total ?? 0) - (a.gmv_total ?? 0);
-      if (shopSortBy === "item_sold") return (b.product_count ?? b.item_sold ?? 0) - (a.product_count ?? a.item_sold ?? 0);
-      if (shopSortBy === "avg_unit_price") return (b.avg_unit_price ?? 0) - (a.avg_unit_price ?? 0);
-      if (shopSortBy === "name") return (a.shop_name ?? "").localeCompare(b.shop_name ?? "");
-      return 0;
-    });
+  const shopRows = shops
+    .filter(s => !shopSearch || (s.shop_name ?? "").toLowerCase().includes(shopSearch.toLowerCase()))
+    .sort((a, b) => (b.gmv_total ?? 0) - (a.gmv_total ?? 0));
 
-  const filteredCreators = creators
-    .filter((c: any) => {
-      const matchesSearch = !creatorSearch || (c.username ?? "").toLowerCase().includes(creatorSearch.toLowerCase());
-      const matchesType = creatorTypeFilter === "all" || (c.creator_type ?? "").toLowerCase() === creatorTypeFilter;
-      return matchesSearch && matchesType;
-    })
-    .sort((a: any, b: any) => {
-      if (creatorSortBy === "gmv_total") return (b.gmv_total ?? 0) - (a.gmv_total ?? 0);
-      if (creatorSortBy === "followers") return (b.followers ?? 0) - (a.followers ?? 0);
-      if (creatorSortBy === "engagement") return (b.engagement_rate ?? 0) - (a.engagement_rate ?? 0);
-      if (creatorSortBy === "conversion") return (b.conversion_rate ?? 0) - (a.conversion_rate ?? 0);
-      return 0;
-    });
+  const creatorRows = creators
+    .filter(c => (!creatorSearch || (c.username ?? "").toLowerCase().includes(creatorSearch.toLowerCase()))
+      && (creatorType === "all" || (c.creator_type ?? "").toLowerCase() === creatorType))
+    .sort((a, b) => (b.gmv_total ?? 0) - (a.gmv_total ?? 0));
+
+  const tabs = [
+    { id: "products", label: "Products", count: items.length },
+    { id: "shops", label: "New shops", count: shops.length },
+    { id: "creators", label: "Creators", count: creators.length },
+  ] as const;
 
   return (
-    <div className="space-y-6 animate-slide-up pb-20 md:pb-6">
-
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">TikTok Shop Intelligence</h1>
-        {items[0]?.data_end_date && (
-          <p className="text-xs text-muted-foreground mt-1">Sales data as of {new Date(items[0].data_end_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</p>
-        )}
-        <p className="text-muted-foreground mt-1 text-sm md:text-base">Products · New Shops · UGC & AIGC Creators</p>
+    <div className="mx-auto max-w-[1400px] space-y-5 pb-20 md:pb-6">
+      {/* Header */}
+      <div className="flex flex-col gap-1">
+        <h1 className="app-h1">TikTok Shop research</h1>
+        <p className="app-sub">
+          US best-sellers, the shops behind them and the creators selling them{asOf ? ` · Sales data to ${asOf}` : ""}
+        </p>
       </div>
 
-      <div className="flex gap-2 border-b border-border pb-0">
-        {[
-          { id:"products", label:"📦 Products"  },
-          { id:"shops",    label:"🏪 New Shops"  },
-          { id:"creators", label:"🎬 Creators"   },
-        ].map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id as any)}
-            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
-              activeTab === t.id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}>
+      {/* Tabs */}
+      <div className="flex gap-6 border-b border-border">
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setActiveTab(t.id)}
+            className={`-mb-px h-10 border-b-2 text-[13px] font-medium transition-colors ${
+              activeTab === t.id ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             {t.label}
+            {t.count > 0 && <span className="ml-1.5 text-[12px] tabular-nums text-muted-foreground">{t.count}</span>}
           </button>
         ))}
       </div>
 
-      {/* ══ TAB: PRODUCTS ══ */}
+      {/* ══ PRODUCTS ══ */}
       {activeTab === "products" && (
-        <>
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search products, categories..." value={search}
-                onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card border-border" />
+        <div className="app-panel overflow-hidden">
+          {/* Filter bar */}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-2 border-b border-border p-3">
+            <div className="relative w-full lg:w-72">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products or categories"
+                className="h-8 w-full rounded-md border border-border bg-card pl-8 pr-3 text-[13px] outline-none placeholder:text-muted-foreground focus:border-foreground/40" />
             </div>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              className="text-sm bg-card border border-border rounded-md px-3 py-2 text-foreground">
-              {SORT_OPTIONS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-            </select>
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            {TIME_FILTERS.map(f => (
-              <button key={f.id} onClick={() => setTimeFilter(f.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
-                  timeFilter === f.id
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-muted/30 text-muted-foreground border-border hover:border-primary/50"
-                }`}>
-                {f.id === "7d"  && <span className="mr-1">🔥</span>}
-                {f.id === "30d" && <span className="mr-1">⚡</span>}
-                {f.label}
-                {f.days && filteredItems.length > 0 && timeFilter === f.id && (
-                  <span className="ml-1.5 bg-primary-foreground/20 text-primary-foreground rounded-full px-1.5">{filteredItems.length}</span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label:"Total Products", value:items.length,            icon:"📦", color:"text-primary"    },
-              { label:"Trending Now",   value:items.filter((p:any) => p.trend_phase === "hot" || p.trend_phase === "rising").length, icon:"🔥", color:"text-red-400" },
-              { label:"New This Month", value:items.filter((p:any) => isNewProduct(p, 30)).length || "—", icon:"⚡", color:"text-green-400" },
-              { label:"Your Plan",      value:planLabel, icon:"👑", color:"text-amber-400"  },
-            ].map((s,i) => (
-              <div key={i} className="rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:shadow-[0_0_24px_-8px_rgba(0,255,133,0.25)] transition-all">
-                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1.5"><span className="text-base">{s.icon}</span>{s.label}</div>
-                <div className={`text-2xl md:text-3xl font-bold ${s.color}`}>{s.value}</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="app-chip relative pr-7">
+                <span className="text-muted-foreground">Added</span>
+                <select value={added} onChange={e => setAdded(e.target.value)} className="appearance-none bg-transparent outline-none cursor-pointer">
+                  {ADDED.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-muted-foreground" />
+              </label>
+              <div className="inline-flex h-8 items-center rounded-md border border-border p-0.5">
+                {STAGES.map(s => (
+                  <button key={s} onClick={() => setStage(s)}
+                    className={`h-full rounded px-2.5 text-[12px] font-medium transition-colors ${
+                      stage === s ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
+                    {s === "all" ? "All stages" : STAGE[s].label}
+                  </button>
+                ))}
               </div>
-            ))}
+            </div>
+            <div className="lg:ml-auto text-[12px] text-muted-foreground tabular-nums whitespace-nowrap">
+              <span className="text-foreground font-medium">{visible.length}</span> products
+              {totalGmv > 0 && <> · <span className="text-foreground font-medium">{fmtUsd(totalGmv)}</span> revenue, 7 days</>}
+            </div>
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+            <div className="flex items-center justify-center py-16"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
           ) : error ? (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">Failed to load products. Please try again.</div>
+            <Empty>Products didn't load. Refresh the page to try again.</Empty>
           ) : (
             <>
-              {/* Desktop Table */}
-              <div className="hidden md:block rounded-xl border border-border overflow-hidden">
-                <table className="w-full text-sm md:text-base">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/30">
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Product</th>
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Category</th>
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Virality</th>
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Trend</th>
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Price</th>
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">GMV 7d</th>
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Views</th>
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Ad Spend</th>
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Image</th>
-                      <th className="text-left py-3.5 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Supplier</th>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b border-border bg-muted/40">
+                    <tr>
+                      <th className="app-th w-10 text-center">#</th>
+                      <th className="app-th">Product</th>
+                      <SortTh k="price" label="Price" sort={sort} dir={dir} onSort={onSort} />
+                      <SortTh k="gmv" label="Revenue 7d" sort={sort} dir={dir} onSort={onSort} />
+                      <SortTh k="units" label="Units 7d" sort={sort} dir={dir} onSort={onSort} />
+                      <SortTh k="views" label="Video views" sort={sort} dir={dir} onSort={onSort} className="hidden xl:table-cell" />
+                      <SortTh k="creators" label="Creators" sort={sort} dir={dir} onSort={onSort} className="hidden lg:table-cell" />
+                      <SortTh k="virality" label="Score" sort={sort} dir={dir} onSort={onSort} />
+                      <th className="app-th">Stage</th>
+                      <th className="app-th w-[96px]" />
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedItems.map((product: any, i: number) => (
-                      <tr key={product.id ?? product.product_name ?? i}
-                        className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors cursor-pointer"
-                        onClick={() => setSelectedProduct(product)}>
-                        <td className="py-3 px-4 font-medium max-w-[240px]">
+                    {pageRows.map((p, i) => (
+                      <tr key={p.id ?? i} onClick={() => setSelectedProduct(p)}
+                        className="group border-b border-border last:border-0 hover:bg-muted/40 cursor-pointer">
+                        <td className="app-td text-center text-muted-foreground tabular-nums">{(currentPage - 1) * ITEMS_PER_PAGE + i + 1}</td>
+                        <td className="app-td max-w-[420px]">
                           <div className="flex items-center gap-3">
-                            {product.thumbnail_url ? (
-                              <img src={product.thumbnail_url}
-                                alt={product.product_name}
-                                className="w-11 h-11 rounded-lg object-cover shrink-0 border border-border"
-                                onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
-                              />
-                            ) : (
-                              <div className="w-11 h-11 rounded-lg bg-muted/50 shrink-0 flex items-center justify-center text-base border border-border">📦</div>
-                            )}
+                            <Thumb src={p.image_storage_url || p.thumbnail_url} alt={p.product_name} />
                             <div className="min-w-0">
-                              <div className="flex gap-1 mb-0.5">
-                                {isNewProduct(product, 7) && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">🔥</span>}
-                                {isNewProduct(product, 30) && !isNewProduct(product, 7) && <span className="text-[9px] font-bold px-1 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">⚡</span>}
+                              <div className="line-clamp-1 font-medium text-foreground">{p.product_name}</div>
+                              <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                                <span className="truncate">{leafCategory(p.category) || "Uncategorised"}</span>
+                                {isNewProduct(p, 30) && <span className="shrink-0 rounded bg-muted px-1.5 text-[11px] text-foreground">New</span>}
                               </div>
-                              <span className="truncate block text-sm md:text-base font-semibold">{product.product_name}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-muted-foreground text-sm max-w-[100px] truncate">{product.category}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-12 h-2 rounded-full bg-muted overflow-hidden">
-                              <div className="h-full rounded-full bg-primary" style={{ width: `${product.virality_score ?? 0}%` }} />
-                            </div>
-                            <span className="text-sm font-medium text-muted-foreground w-9">{product.virality_score ?? 0}%</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <Badge variant="outline" className={phaseStyles[product.trend_phase] ?? phaseStyles.stable}>
-                            {product.trend_phase ?? "Stable"}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4 text-muted-foreground font-medium"><PriceCell product={product} /></td>
-                        <td className="py-3 px-4 text-green-400 font-semibold text-sm">{formatCurrency(product.gmv_7d)}</td>
-                        <td className="py-3 px-4 text-muted-foreground text-sm">
-                          {product.video_views && product.video_views > 0 ? formatNumber(product.video_views) : <span className="opacity-30">N/A</span>}
-                        </td>
-                        <td className="py-3 px-4 text-amber-400 text-sm font-medium">
-                          {adSpendValue(product) != null ? formatCurrency(adSpendValue(product)!) : <span className="opacity-30">N/A</span>}
-                        </td>
-                        <td className="py-3 px-4">
-                          {product.thumbnail_url ? (
-                            <button
-                              onClick={e => { e.stopPropagation(); setImageModal(product); }}
-                              className="flex items-center gap-1 text-sm text-primary hover:underline">
-                              <Eye className="h-3.5 w-3.5" /> Image
-                            </button>
-                          ) : (
-                            <span className="text-sm opacity-30">—</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <Button variant="outline" size="sm"
-                            className="text-sm border-primary/30 text-primary hover:bg-primary/10"
-                            onClick={(e) => handleFindSupplier(product, e)}>
-                            <Factory className="h-3.5 w-3.5 mr-1" /> Source
-                          </Button>
+                        <td className="app-td app-num"><Price p={p} /></td>
+                        <td className="app-td app-num font-medium text-foreground">{fmtUsd(p.gmv_7d)}<Delta v={p.gmv_growth_pct} /></td>
+                        <td className="app-td app-num">{fmtNum(p.units_sold_7d)}</td>
+                        <td className="app-td app-num hidden xl:table-cell">{fmtNum(p.video_views)}</td>
+                        <td className="app-td app-num hidden lg:table-cell">{fmtNum(p.creator_count)}</td>
+                        <td className="app-td app-num"><Score v={p.virality_score} /></td>
+                        <td className="app-td"><StagePill phase={p.trend_phase} /></td>
+                        <td className="app-td text-right">
+                          <button onClick={e => openSupplier(p, e)} className="app-btn-ghost h-7 px-2.5 text-[12px] opacity-80 group-hover:opacity-100">
+                            Suppliers
+                          </button>
                         </td>
                       </tr>
                     ))}
-                    {paginatedItems.length === 0 && (
-                      <tr><td colSpan={10} className="py-8 text-center text-muted-foreground">
-                        {timeFilter !== "all" ? `No products found in the selected time range. Try "All Time".` : "No products found"}
-                      </td></tr>
-                    )}
                   </tbody>
                 </table>
+                {pageRows.length === 0 && (
+                  <Empty>{added !== "all" || stage !== "all" ? "No products match these filters." : "No products found."}</Empty>
+                )}
               </div>
 
-              {/* Mobile Cards */}
-              <div className="md:hidden space-y-3">
-                {paginatedItems.map((product: any, i: number) => (
-                  <div key={product.id ?? i}
-                    className="rounded-xl border border-border bg-card p-4 space-y-3 cursor-pointer active:bg-muted/20 transition-colors"
-                    onClick={() => setSelectedProduct(product)}>
-                    <div className="flex items-start gap-3">
-                      {product.thumbnail_url ? (
-                        <img src={product.thumbnail_url} alt={product.product_name}
-                          className="w-12 h-12 rounded-lg object-cover shrink-0 border border-border"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-muted/50 shrink-0 flex items-center justify-center text-xl border border-border">📦</div>
-                      )}
-                      <div className="flex-1 min-w-0 flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            {isNewProduct(product, 7) && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">🔥</span>}
-                            {isNewProduct(product, 30) && !isNewProduct(product, 7) && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">⚡</span>}
-                            <p className="font-medium text-sm truncate">{product.product_name}</p>
-                          </div>
-                          <p className="text-xs text-muted-foreground">{product.category}</p>
-                        </div>
-                        <Badge variant="outline" className={`shrink-0 text-[10px] ${phaseStyles[product.trend_phase] ?? phaseStyles.stable}`}>
-                          {product.trend_phase ?? "Stable"}
-                        </Badge>
+              {/* Mobile list */}
+              <div className="md:hidden divide-y divide-border">
+                {pageRows.map((p, i) => (
+                  <button key={p.id ?? i} onClick={() => setSelectedProduct(p)} className="w-full text-left px-3 py-3 flex gap-3 active:bg-muted/40">
+                    <Thumb src={p.image_storage_url || p.thumbnail_url} alt={p.product_name} size={48} />
+                    <div className="min-w-0 flex-1">
+                      <div className="line-clamp-2 text-[13px] font-medium text-foreground">{p.product_name}</div>
+                      <div className="mt-1.5 flex items-center gap-3 text-[12px] tabular-nums text-muted-foreground">
+                        <span className="text-foreground"><Price p={p} /></span>
+                        <span>{fmtUsd(p.gmv_7d)} / 7d</span>
+                        <StagePill phase={p.trend_phase} />
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="text-center"><div className="text-muted-foreground mb-0.5">Virality</div><div className="font-bold text-primary">{product.virality_score ?? 0}%</div></div>
-                      <div className="text-center"><div className="text-muted-foreground mb-0.5">GMV 7d</div><div className="font-bold text-green-400">{formatCurrency(product.gmv_7d)}</div></div>
-                      <div className="text-center"><div className="text-muted-foreground mb-0.5">Price</div><div className="font-bold"><PriceCell product={product} /></div></div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm"
-                        className="flex-1 text-xs border-primary/30 text-primary hover:bg-primary/10 min-h-[44px]"
-                        onClick={(e) => handleFindSupplier(product, e)}>
-                        <Factory className="h-3 w-3 mr-1" /> Find Supplier
-                      </Button>
-                      {product.thumbnail_url && (
-                        <button
-                          onClick={e => { e.stopPropagation(); setImageModal(product); }}
-                          className="flex items-center justify-center gap-1 px-3 border border-border rounded-md text-xs text-muted-foreground hover:text-foreground min-h-[44px]">
-                          <Eye className="h-3 w-3" /> Image
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                  </button>
                 ))}
-                {paginatedItems.length === 0 && <div className="py-8 text-center text-muted-foreground text-sm">No products found</div>}
+                {pageRows.length === 0 && <Empty>No products found.</Empty>}
               </div>
 
+              {isFree && rows.length > 10 && <UpgradeRow text={`Showing 10 of ${Math.min(rows.length, 100)} products on the Free plan.`} />}
+
               {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4">
-                  <span className="text-xs text-muted-foreground">
-                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, visibleItems.length)} of {visibleItems.length}
+                <div className="flex items-center justify-between border-t border-border px-4 py-2.5">
+                  <span className="text-[12px] text-muted-foreground tabular-nums">
+                    {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, visible.length)} of {visible.length}
                   </span>
                   <div className="flex items-center gap-1">
-                    <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="h-8 w-8 p-0"><ChevronLeft className="h-4 w-4" /></Button>
-                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(page => (
-                      <Button key={page} variant={page === currentPage ? "default" : "outline"} size="sm" onClick={() => setCurrentPage(page)} className="h-8 w-8 p-0 text-xs">{page}</Button>
+                    <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="app-btn-ghost h-7 w-7 px-0"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+                      <button key={n} onClick={() => setCurrentPage(n)}
+                        className={`h-7 min-w-7 rounded-md px-2 text-[12px] tabular-nums ${n === currentPage ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted"}`}>{n}</button>
                     ))}
-                    <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="h-8 w-8 p-0"><ChevronRight className="h-4 w-4" /></Button>
+                    <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="app-btn-ghost h-7 w-7 px-0"><ChevronRight className="h-3.5 w-3.5" /></button>
                   </div>
                 </div>
               )}
             </>
           )}
-        </>
+        </div>
       )}
 
-      {/* ══ TAB: NEW SHOPS ══ */}
+      {/* ══ SHOPS ══ */}
       {activeTab === "shops" && (
-        <div className="space-y-4">
-           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-semibold text-base">🏪 New Shops on TikTok Shop USA</h2>
-              <p className="text-xs text-muted-foreground mt-1">Newly launched shops with high growth velocity</p>
+        <div className="app-panel overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 border-b border-border p-3">
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <input value={shopSearch} onChange={e => setShopSearch(e.target.value)} placeholder="Search shops"
+                className="h-8 w-full rounded-md border border-border bg-card pl-8 pr-3 text-[13px] outline-none placeholder:text-muted-foreground focus:border-foreground/40" />
             </div>
+            <p className="sm:ml-auto text-[12px] text-muted-foreground">Recently launched US shops, ranked by revenue</p>
           </div>
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search shops..." value={shopSearch}
-                onChange={(e) => setShopSearch(e.target.value)} className="pl-9 bg-card border-border" />
-            </div>
-            <select value={shopSortBy} onChange={e => setShopSortBy(e.target.value)}
-              className="text-sm bg-card border border-border rounded-md px-3 py-2 text-foreground">
-              <option value="gmv_total">Revenue</option>
-              <option value="item_sold">Items Sold</option>
-              <option value="avg_unit_price">Avg. Unit Price</option>
-              <option value="name">Name A-Z</option>
-            </select>
-          </div>
-          <div className="rounded-xl border border-border overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Shop Name</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Seller Type</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Revenue($)</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Item Sold</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Avg. Unit Price($)</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Live Revenue($)</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Video Revenue($)</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Product Card Revenue($)</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Self-Operated Account Revenue($)</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Affiliate Revenue($)</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground whitespace-nowrap">Shopping Mall Revenue($)</th>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b border-border bg-muted/40">
+                <tr>
+                  <th className="app-th w-10 text-center">#</th>
+                  <th className="app-th">Shop</th>
+                  <th className="app-th">Seller type</th>
+                  <th className="app-th app-num">Revenue</th>
+                  <th className="app-th app-num">Items sold</th>
+                  <th className="app-th app-num">Avg price</th>
+                  <th className="app-th app-num">Video</th>
+                  <th className="app-th app-num">Live</th>
+                  <th className="app-th app-num hidden lg:table-cell">Product card</th>
+                  <th className="app-th app-num hidden lg:table-cell">Affiliate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {shopRows.map((s, i) => (
+                  <tr key={s.id ?? i} onClick={() => setSelectedShop(s)} className="border-b border-border last:border-0 hover:bg-muted/40 cursor-pointer">
+                    <td className="app-td text-center text-muted-foreground tabular-nums">{i + 1}</td>
+                    <td className="app-td font-medium text-foreground whitespace-nowrap">{s.shop_name}</td>
+                    <td className="app-td text-muted-foreground whitespace-nowrap">{s.seller_type ?? "—"}</td>
+                    <td className="app-td app-num font-medium text-foreground">{fmtUsd(s.gmv_total)}<Delta v={s.gmv_growth_pct} /></td>
+                    <td className="app-td app-num">{fmtNum(s.product_count ?? s.item_sold)}</td>
+                    <td className="app-td app-num">{fmtUsd(s.avg_unit_price)}</td>
+                    <td className="app-td app-num">{fmtUsd(s.video_revenue)}</td>
+                    <td className="app-td app-num">{fmtUsd(s.live_revenue)}</td>
+                    <td className="app-td app-num hidden lg:table-cell">{fmtUsd(s.product_card_revenue)}</td>
+                    <td className="app-td app-num hidden lg:table-cell">{fmtUsd(s.affiliate_revenue)}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredShops.map(shop => (
-                    <tr key={shop.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => setSelectedShop(shop)}>
-                      <td className="py-2 px-4 font-medium whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="text-primary hover:underline">{shop.shop_name}</span>
-                          {shop.gmv_growth_pct > 300 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">+{shop.gmv_growth_pct}%</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-2 px-4 whitespace-nowrap">{shop.seller_type ?? "—"}</td>
-                      <td className="py-2 px-4 whitespace-nowrap text-green-400 font-semibold">{formatCurrency(shop.gmv_total)}</td>
-                      <td className="py-2 px-4 whitespace-nowrap">{formatNumber(shop.product_count ?? shop.item_sold ?? 0)}</td>
-                      <td className="py-2 px-4 whitespace-nowrap">${(shop.avg_unit_price ?? 0).toFixed(2)}</td>
-                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.live_revenue ?? 0)}</td>
-                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.video_revenue ?? 0)}</td>
-                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.product_card_revenue ?? 0)}</td>
-                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.self_operated_revenue ?? 0)}</td>
-                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.affiliate_revenue ?? 0)}</td>
-                      <td className="py-2 px-4 whitespace-nowrap">{formatCurrency(shop.shopping_mall_revenue ?? 0)}</td>
-                    </tr>
-                  ))}
-                  {filteredShops.length === 0 && (
-                    <tr><td colSpan={11} className="py-8 text-center text-muted-foreground">No shop data available right now.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
+            {shopRows.length === 0 && <Empty>No shop data yet.</Empty>}
           </div>
-          {isFree && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-center space-y-3">
-              <div className="text-2xl">🔒</div>
-              <p className="font-semibold text-sm">Upgrade to Pro to see all new shops, contact details and full analytics</p>
-              <Link to="/pricing"><Button className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">Upgrade to Pro — $39/mo</Button></Link>
-            </div>
-          )}
+          {isFree && <UpgradeRow text="Pro unlocks every new shop with full revenue breakdowns." />}
         </div>
       )}
 
-      {/* ══ TAB: CREATORS ══ */}
+      {/* ══ CREATORS ══ */}
       {activeTab === "creators" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <h2 className="font-semibold text-base">🎬 UGC & AIGC Creators</h2>
-              <p className="text-xs text-muted-foreground mt-1">Find creators making shoppable videos for TikTok Shop USA</p>
+        <div className="app-panel overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 border-b border-border p-3">
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <input value={creatorSearch} onChange={e => setCreatorSearch(e.target.value)} placeholder="Search creators"
+                className="h-8 w-full rounded-md border border-border bg-card pl-8 pr-3 text-[13px] outline-none placeholder:text-muted-foreground focus:border-foreground/40" />
             </div>
-            <div className="flex gap-2">
-              {[{ id:"all", label:"All Creators" },{ id:"ugc", label:"UGC Only" },{ id:"aigc", label:"AIGC Only" }].map(f => (
-                <button key={f.id} onClick={() => setCreatorTypeFilter(f.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                    creatorTypeFilter === f.id ? "bg-primary text-primary-foreground border-primary" : "bg-muted/30 text-muted-foreground border-border hover:border-primary/50"
-                  }`}>{f.label}</button>
+            <div className="inline-flex h-8 items-center rounded-md border border-border p-0.5">
+              {[{ id: "all", l: "All" }, { id: "ugc", l: "UGC" }, { id: "aigc", l: "AI video" }].map(f => (
+                <button key={f.id} onClick={() => setCreatorType(f.id)}
+                  className={`h-full rounded px-2.5 text-[12px] font-medium ${creatorType === f.id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>{f.l}</button>
               ))}
             </div>
+            <p className="sm:ml-auto text-[12px] text-muted-foreground">Creators making shoppable videos in the US</p>
           </div>
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search creators..." value={creatorSearch}
-                onChange={(e) => setCreatorSearch(e.target.value)} className="pl-9 bg-card border-border" />
-            </div>
-            <select value={creatorSortBy} onChange={e => setCreatorSortBy(e.target.value)}
-              className="text-sm bg-card border border-border rounded-md px-3 py-2 text-foreground">
-              <option value="gmv_total">Revenue</option>
-              <option value="followers">Followers</option>
-              <option value="engagement">Engagement Rate</option>
-              <option value="conversion">Conversion Rate</option>
-            </select>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-blue-500/25 bg-blue-500/5 p-4">
-              <div className="flex items-center gap-2 mb-2"><UserCheck className="h-4 w-4 text-blue-400" /><span className="font-semibold text-sm text-blue-400">UGC Creators</span></div>
-              <p className="text-xs text-muted-foreground">Real people creating authentic product review videos. Higher trust, lower conversion rates but stronger brand loyalty.</p>
-            </div>
-            <div className="rounded-xl border border-purple-500/25 bg-purple-500/5 p-4">
-              <div className="flex items-center gap-2 mb-2"><Video className="h-4 w-4 text-purple-400" /><span className="font-semibold text-sm text-purple-400">AIGC Creators</span></div>
-              <p className="text-xs text-muted-foreground">AI-generated shoppable video content. Faster production, scalable, and increasingly high converting on TikTok Shop USA.</p>
-            </div>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCreators.map(creator => (
-              <div key={creator.id}
-                className={`rounded-xl border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors ${creator.ai_content ? "border-purple-500/25" : "border-border"}`}>
-
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-semibold text-sm">{creator.username}</div>
-                    <div className="text-xs text-muted-foreground">{creator.niche || "Niche not available"}</div>
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${
-                    creator.creator_type === "AIGC" ? "bg-purple-500/15 text-purple-400 border-purple-500/25" : "bg-blue-500/15 text-blue-400 border-blue-500/25"
-                  }`}>{creator.creator_type}</span>
-                </div>
-
-                {/* Audience row */}
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div className="text-center bg-muted/30 rounded-lg p-2">
-                    <div className="text-muted-foreground mb-0.5">Followers</div>
-                    <div className="font-bold">{dash(creator.followers, formatNumber)}</div>
-                  </div>
-                  <div className="text-center bg-muted/30 rounded-lg p-2">
-                    <div className="text-muted-foreground mb-0.5">Engagement</div>
-                    <div className="font-bold text-green-400">{dash(creator.engagement_rate, v => `${v}%`)}</div>
-                  </div>
-                  <div className="text-center bg-muted/30 rounded-lg p-2">
-                    <div className="text-muted-foreground mb-0.5">Avg Views</div>
-                    <div className="font-bold text-primary">{dash(creator.avg_views, formatNumber)}</div>
-                  </div>
-                </div>
-
-                {/* GMV divider */}
-                <div className="border-t border-border pt-2">
-                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Revenue Performance</div>
-
-                  {/* GMV Total — hero stat */}
-                  <div className="flex items-center justify-between bg-green-500/8 border border-green-500/20 rounded-lg px-3 py-2 mb-2">
-                    <span className="text-xs text-muted-foreground">Total GMV</span>
-                    <span className="text-sm font-bold text-green-400">{formatCurrency(creator.gmv_total ?? 0)}</span>
-                  </div>
-
-                  {/* Live GMV + Video GMV */}
-                  <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-                    <div className="bg-muted/30 rounded-lg p-2">
-                      <div className="text-muted-foreground mb-0.5 flex items-center gap-1">
-                        🔴 Live GMV
-                      </div>
-                      <div className={`font-bold ${(creator.live_gmv ?? 0) > 0 ? "text-red-400" : "text-muted-foreground opacity-40"}`}>
-                        {(creator.live_gmv ?? 0) > 0 ? formatCurrency(creator.live_gmv) : "—"}
-                      </div>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-2">
-                      <div className="text-muted-foreground mb-0.5 flex items-center gap-1">
-                        🎬 Video GMV
-                      </div>
-                      <div className="font-bold text-blue-400">{dash(creator.video_gmv, formatCurrency)}</div>
-                    </div>
-                  </div>
-
-                  {/* Products + Conversion */}
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-muted/30 rounded-lg p-2">
-                      <div className="text-muted-foreground mb-0.5">Products</div>
-                      <div className="font-bold text-amber-400">{dash(creator.products_promoted)}</div>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-2">
-                      <div className="text-muted-foreground mb-0.5">Conv. Rate</div>
-                      <div className="font-bold text-primary">{dash(creator.conversion_rate, v => `${v}%`)}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AI badge */}
-                {creator.ai_content && (
-                  <div className="flex items-center gap-1.5 text-xs text-purple-400 bg-purple-500/10 rounded-lg px-2 py-1.5 border border-purple-500/20">
-                    <Zap className="h-3 w-3" /> Makes AI Shoppable Videos
-                  </div>
-                )}
-
-                {/* CTA */}
-                <div className="pt-1">
-                  {isFree ? (
-                    <Link to="/pricing" className="block w-full">
-                      <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground hover:border-primary/30 transition-colors min-h-[44px]">
-                        <span className="flex items-center gap-1.5"><Lock className="h-3 w-3" /> View Contact</span>
-                        <span className="text-primary">Upgrade →</span>
-                      </button>
-                    </Link>
-                  ) : creator.contact_email && creator.contact_email !== "null" ? (
-                    <a href={`mailto:${creator.contact_email}`}
-                      className="block w-full text-center px-3 py-2 rounded-lg border border-primary/30 bg-primary/10 text-xs text-primary hover:bg-primary/20 transition-colors min-h-[44px] flex items-center justify-center">
-                      Contact Creator →
-                    </a>
-                  ) : (
-                    <div className="w-full text-center px-3 py-2 rounded-lg border border-border text-xs text-muted-foreground min-h-[44px] flex items-center justify-center">
-                      No public contact yet
-                    </div>
-                  )}
-                </div>
-
-              </div>
-            ))}
-          </div>
-          {filteredCreators.length === 0 && (
-            <p className="py-8 text-center text-sm text-muted-foreground">No creator data available right now.</p>
-          )}
-          {isFree && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-center space-y-3">
-              <div className="text-2xl">🔒</div>
-              <p className="font-semibold text-sm">Upgrade to Pro to contact creators and see full analytics</p>
-              <Link to="/pricing"><Button className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">Upgrade to Pro — $39/mo</Button></Link>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ══ SHOP DETAIL MODAL ══ */}
-      {selectedShop && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center md:p-4" onClick={() => setSelectedShop(null)}>
-          <div className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full md:max-w-lg max-h-[95vh] md:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 md:p-6 border-b border-border sticky top-0 bg-card z-10">
-              <div className="min-w-0">
-                <h2 className="font-semibold text-base flex items-center gap-2">
-                  <Store className="h-4 w-4 text-primary" />
-                  {selectedShop.shop_name}
-                </h2>
-                {selectedShop.seller_type && (
-                  <span className="text-xs text-muted-foreground mt-1 block">{selectedShop.seller_type}</span>
-                )}
-              </div>
-              <button onClick={() => setSelectedShop(null)} className="text-muted-foreground hover:text-foreground p-2 -mr-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="p-4 md:p-6 space-y-4">
-              {/* Revenue hero */}
-              <div className="flex items-center justify-between bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3">
-                <span className="text-sm text-muted-foreground">Total Revenue</span>
-                <span className="text-lg font-bold text-green-400">{formatCurrency(selectedShop.gmv_total ?? 0)}</span>
-              </div>
-
-              {selectedShop.gmv_growth_pct > 0 && (
-                <div className="flex items-center gap-2 text-xs">
-                  <TrendingUp className="h-3 w-3 text-green-400" />
-                  <span className="text-green-400 font-semibold">+{selectedShop.gmv_growth_pct}% growth</span>
-                </div>
-              )}
-
-              {/* Stats grid */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {[
-                  { label: "Items Sold", value: formatNumber(selectedShop.product_count ?? selectedShop.item_sold ?? 0) },
-                  { label: "Avg. Unit Price", value: `$${(selectedShop.avg_unit_price ?? 0).toFixed(2)}` },
-                  { label: "Live Revenue", value: formatCurrency(selectedShop.live_revenue ?? 0) },
-                  { label: "Video Revenue", value: formatCurrency(selectedShop.video_revenue ?? 0) },
-                  { label: "Product Card Revenue", value: formatCurrency(selectedShop.product_card_revenue ?? 0) },
-                  { label: "Self-Operated Revenue", value: formatCurrency(selectedShop.self_operated_revenue ?? 0) },
-                  { label: "Affiliate Revenue", value: formatCurrency(selectedShop.affiliate_revenue ?? 0) },
-                  { label: "Shopping Mall Revenue", value: formatCurrency(selectedShop.shopping_mall_revenue ?? 0) },
-                ].map((item, i) => (
-                  <div key={i} className="bg-muted/30 rounded-lg p-3">
-                    <div className="text-xs text-muted-foreground mb-1">{item.label}</div>
-                    <div className="font-semibold">{item.value}</div>
-                  </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b border-border bg-muted/40">
+                <tr>
+                  <th className="app-th w-10 text-center">#</th>
+                  <th className="app-th">Creator</th>
+                  <th className="app-th">Type</th>
+                  <th className="app-th app-num">Followers</th>
+                  <th className="app-th app-num">Engagement</th>
+                  <th className="app-th app-num hidden lg:table-cell">Avg views</th>
+                  <th className="app-th app-num">GMV</th>
+                  <th className="app-th app-num hidden xl:table-cell">Video GMV</th>
+                  <th className="app-th app-num hidden xl:table-cell">Live GMV</th>
+                  <th className="app-th app-num hidden lg:table-cell">Products</th>
+                  <th className="app-th app-num hidden lg:table-cell">Conversion</th>
+                  <th className="app-th text-right">Contact</th>
+                </tr>
+              </thead>
+              <tbody>
+                {creatorRows.map((c, i) => (
+                  <tr key={c.id ?? i} className="border-b border-border last:border-0 hover:bg-muted/40">
+                    <td className="app-td text-center text-muted-foreground tabular-nums">{i + 1}</td>
+                    <td className="app-td">
+                      <div className="font-medium text-foreground">{c.username}</div>
+                      <div className="text-[12px] text-muted-foreground">{c.niche || "—"}</div>
+                    </td>
+                    <td className="app-td">
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-medium text-foreground">{c.creator_type === "AIGC" ? "AI video" : c.creator_type ?? "—"}</span>
+                    </td>
+                    <td className="app-td app-num">{fmtNum(c.followers)}</td>
+                    <td className="app-td app-num">{Number(c.engagement_rate) ? `${c.engagement_rate}%` : "—"}</td>
+                    <td className="app-td app-num hidden lg:table-cell">{fmtNum(c.avg_views)}</td>
+                    <td className="app-td app-num font-medium text-foreground">{fmtUsd(c.gmv_total)}</td>
+                    <td className="app-td app-num hidden xl:table-cell">{fmtUsd(c.video_gmv)}</td>
+                    <td className="app-td app-num hidden xl:table-cell">{fmtUsd(c.live_gmv)}</td>
+                    <td className="app-td app-num hidden lg:table-cell">{fmtNum(c.products_promoted)}</td>
+                    <td className="app-td app-num hidden lg:table-cell">{Number(c.conversion_rate) ? `${c.conversion_rate}%` : "—"}</td>
+                    <td className="app-td text-right whitespace-nowrap">
+                      {isFree ? (
+                        <Link to="/pricing" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"><Lock className="h-3 w-3" /> Pro</Link>
+                      ) : c.contact_email && c.contact_email !== "null" ? (
+                        <a href={`mailto:${c.contact_email}`} className="text-[12px] font-medium text-foreground underline underline-offset-2">Email</a>
+                      ) : <span className="text-[12px] text-muted-foreground">—</span>}
+                    </td>
+                  </tr>
                 ))}
-              </div>
-
-              {/* Go to Shop button */}
-              {selectedShop.shop_url ? (
-                <a href={selectedShop.shop_url} target="_blank" rel="noopener noreferrer" className="block">
-                  <Button className="w-full bg-primary text-primary-foreground min-h-[44px]">
-                    <Store className="h-4 w-4 mr-2" /> Go to Shop Page →
-                  </Button>
-                </a>
-              ) : (
-                <Button disabled className="w-full min-h-[44px] opacity-50">
-                  <Store className="h-4 w-4 mr-2" /> Shop URL not available
-                </Button>
-              )}
-            </div>
+              </tbody>
+            </table>
+            {creatorRows.length === 0 && <Empty>No creator data yet.</Empty>}
           </div>
+          {isFree && <UpgradeRow text="Pro unlocks creator contact details." />}
         </div>
       )}
 
-      {/* ══ SUPPLIER MODAL ══ */}
-      {supplierProduct && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center md:p-4" onClick={closeSupplier}>
-          <div className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full md:max-w-lg max-h-[95vh] md:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 md:p-6 border-b border-border sticky top-0 bg-card z-10">
-              <div className="min-w-0">
-                <h2 className="font-semibold text-base">Find Supplier</h2>
-                <p className="text-xs text-muted-foreground mt-1 truncate">{supplierProduct.product_name}</p>
-              </div>
-              <button onClick={closeSupplier} className="text-muted-foreground hover:text-foreground p-2 -mr-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="p-4 md:p-6 space-y-4">
-              <div className="flex items-center justify-between text-sm">
-                <p className="text-muted-foreground">Choose a platform to source from:</p>
-                {creditInfo?.credits_total != null && (
-                  <span className="text-xs text-muted-foreground">{creditInfo.credits_remaining ?? 0} of {creditInfo.credits_total} credits left</span>
-                )}
-              </div>
-              <p className="text-[11px] text-muted-foreground -mt-2">You're only charged when we find matches. Reopening a product you already searched is free.</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {platforms.map(p => (
-                  <Button key={p.id} variant="outline"
-                    className={`flex flex-col h-auto py-3 font-semibold min-h-[44px] ${p.color} ${supplierPlatform === p.id ? "ring-2 ring-offset-1 ring-offset-background" : ""}`}
-                    onClick={() => handleSearchPlatform(p.id)} disabled={supplierLoading}>
-                    <span className="text-xs font-medium">{p.label}</span>
-                    <span className="text-[10px] opacity-70">1 credit · photo match</span>
-                  </Button>
-                ))}
-              </div>
-              {supplierLoading && (
-                <div className="flex flex-col items-center py-8 gap-3">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  <p className="text-xs text-muted-foreground">Searching by product photo… usually 30–90 seconds</p>
-                </div>
-              )}
-              {supplierError === "upgrade" && <div className="text-center py-4 space-y-2"><p className="text-sm text-amber-400">Supplier sourcing requires a paid plan.</p><Link to="/pricing"><Button size="sm" className="bg-primary text-primary-foreground min-h-[44px]">Upgrade →</Button></Link></div>}
-              {supplierError === "no_credits" && <div className="text-center py-4 space-y-2"><p className="text-sm text-amber-400">You've used all {creditInfo?.credits_total ?? ""} credits for this period{creditInfo?.period_end ? ` (resets ${new Date(creditInfo.period_end).toLocaleDateString()})` : ""}.</p><Link to="/pricing"><Button size="sm" className="bg-primary text-primary-foreground min-h-[44px]">Upgrade →</Button></Link></div>}
-              {supplierError && !["upgrade","no_credits"].includes(supplierError) && <p className="text-center text-sm text-destructive py-4">{supplierError}</p>}
-              {supplierResults && supplierResults.length > 0 && (
-                <div className="space-y-3 mt-2">
-                  <p className="text-xs text-muted-foreground font-medium">Top {supplierResults.length} possible matches. Check the product photos and specs, and order a sample before buying in bulk.</p>
-                  {supplierResults.map((s: any, i: number) => {
-                    // Recompute with the same fee model as the calculator so numbers are consistent.
-                    const unit = Number(s.unit_cost_min);
-                    const est = Number.isFinite(unit) && unit > 0 && !priceLooksWrong(supplierProduct)
-                      ? calcProfit({ sellingPrice: Number(supplierProduct.tiktok_price), productCost: unit, referralPct: DEFAULT_REFERRAL_PCT, creatorPct: DEFAULT_CREATOR_PCT })
-                      : null;
-                    const rc = !est ? "text-muted-foreground" : est.margin >= 30 ? "text-green-400" : est.margin >= 15 ? "text-amber-400" : "text-red-400";
-                    const profitLabel = !est ? "Check price" : est.margin >= 30 ? "Strong margin" : est.margin >= 15 ? "Thin margin" : "Low margin";
-                    return (
-                      <div key={i} className="rounded-xl border border-border bg-muted/20 p-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium truncate max-w-[70%]">{s.supplier_name || s.name || `Supplier ${i+1}`}</span>
-                          <span className={`text-xs font-semibold ${rc}`}>{profitLabel}</span>
-                        </div>
-                        {(s.similarity != null || (s._match_method && s._match_method !== "text")) && (
-                          <span className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                            {s.similarity != null ? `Photo match ${Math.round(Number(s.similarity) * 100)}%` : "Photo-checked match"}
-                          </span>
-                        )}
-                        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                          <div>Unit Cost: <span className="text-foreground font-medium">${s.unit_cost_min ?? "—"}</span></div>
-                          <div>MOQ: <span className="text-foreground font-medium">{s.moq ?? "—"}</span></div>
-                          <div>Shipping: <span className="text-foreground font-medium">{s.shipping_estimate_days != null ? `${s.shipping_estimate_days} days` : "—"}</span></div>
-                          <div>Est. profit/unit: <span className="text-foreground font-medium">{est ? `$${est.profitPerUnit.toFixed(2)}` : "—"}</span></div>
-                        </div>
-                        {est && <div className="text-xs">Margin: <span className={`font-semibold ${rc}`}>{est.margin.toFixed(1)}%</span> <span className="text-muted-foreground">(after 6% TikTok fee + 15% creator, before shipping)</span></div>}
-                        {s.supplier_url && (
-                          <a
-                            href={s.supplier_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex w-full min-h-[44px] items-center justify-between rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-                          >
-                            <span>View Supplier</span>
-                            <span>→</span>
-                          </a>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {supplierResults?.length === 0 && <p className="text-center text-sm text-muted-foreground py-4">No suppliers found.</p>}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ══ PRODUCT DETAIL MODAL ══ */}
+      {/* ══ PRODUCT DRAWER ══ */}
       {selectedProduct && !supplierProduct && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center md:p-4" onClick={() => setSelectedProduct(null)}>
-          <div className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full md:max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-start justify-between p-4 md:p-6 border-b border-border sticky top-0 bg-card z-10">
-              <div className="flex gap-3 md:gap-4 min-w-0">
-                {selectedProduct.thumbnail_url && (
-                  <img src={selectedProduct.thumbnail_url} alt={selectedProduct.product_name}
-                    className="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover shrink-0"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
-                )}
-                <div className="min-w-0">
-                  <h2 className="font-semibold text-sm md:text-base leading-snug truncate">{selectedProduct.product_name}</h2>
-                  <p className="text-xs text-muted-foreground mt-1">{selectedProduct.category}</p>
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    <Badge variant="outline" className={phaseStyles[selectedProduct.trend_phase] ?? phaseStyles.stable}>{selectedProduct.trend_phase ?? "Stable"}</Badge>
-                    {isNewProduct(selectedProduct, 7) && <Badge variant="outline" className="border-red-500/30 bg-red-500/10 text-red-400">New 🔥</Badge>}
-                    {isNewProduct(selectedProduct, 30) && !isNewProduct(selectedProduct, 7) && <Badge variant="outline" className="border-green-500/30 bg-green-500/10 text-green-400">New ⚡</Badge>}
-                  </div>
+        <Drawer onClose={() => setSelectedProduct(null)}>
+          <DrawerHeader
+            onClose={() => setSelectedProduct(null)}
+            left={<Thumb src={selectedProduct.image_storage_url || selectedProduct.thumbnail_url} alt={selectedProduct.product_name} size={56} />}
+            title={selectedProduct.product_name}
+            sub={<div className="flex items-center gap-2"><span>{leafCategory(selectedProduct.category)}</span><StagePill phase={selectedProduct.trend_phase} /></div>}
+          />
+          <div className="p-5 space-y-5">
+            {(selectedProduct.image_storage_url || selectedProduct.thumbnail_url) && (
+              <img src={selectedProduct.image_storage_url || selectedProduct.thumbnail_url} alt={selectedProduct.product_name}
+                className="w-full max-h-[320px] object-contain rounded-lg border border-border bg-muted/40"
+                onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+            )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-px overflow-hidden rounded-lg border border-border bg-border [&>*]:bg-card">
+              <Stat label="Price" value={<Price p={selectedProduct} />} />
+              <Stat label="Revenue, 7 days" value={fmtUsd(selectedProduct.gmv_7d)} sub={<Delta v={selectedProduct.gmv_growth_pct} />} />
+              <Stat label="Units, 7 days" value={fmtNum(selectedProduct.units_sold_7d)} />
+              <Stat label="Video views" value={fmtNum(selectedProduct.video_views)} />
+              <Stat label="Creators" value={fmtNum(selectedProduct.creator_count)} />
+              <Stat label="Score" value={`${selectedProduct.virality_score ?? 0}/100`} />
+              <Stat label="Ad spend" value={adSpendValue(selectedProduct) != null ? fmtUsd(adSpendValue(selectedProduct)) : "—"} />
+              <Stat label="Reviews" value={fmtNum(selectedProduct.review_count)} />
+              <Stat label="First seen" value={selectedProduct.first_seen_at ? new Date(selectedProduct.first_seen_at).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "—"} />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button onClick={() => openSupplier(selectedProduct)} className="app-btn h-10 flex-1"><Factory className="h-4 w-4" strokeWidth={1.75} /> Find suppliers</button>
+              {selectedProduct.tiktok_product_url && (
+                <a href={selectedProduct.tiktok_product_url} target="_blank" rel="noopener noreferrer" className="app-btn-ghost h-10 flex-1">
+                  TikTok Shop page <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+              )}
+              <button onClick={() => { const p = selectedProduct; setSelectedProduct(null); setListProductItem(p); }} className="app-btn-ghost h-10 flex-1">
+                <ShoppingBag className="h-4 w-4" strokeWidth={1.75} /> List product
+              </button>
+            </div>
+          </div>
+        </Drawer>
+      )}
+
+      {/* ══ SUPPLIER DRAWER ══ */}
+      {supplierProduct && (
+        <Drawer onClose={closeSupplier} width={620}>
+          <DrawerHeader
+            onClose={closeSupplier}
+            left={<Thumb src={supplierProduct.image_storage_url || supplierProduct.thumbnail_url} alt={supplierProduct.product_name} size={44} />}
+            title="Suppliers"
+            sub={<span className="line-clamp-1">{supplierProduct.product_name}</span>}
+          />
+          <div className="p-5 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="inline-flex h-9 items-center rounded-md border border-border p-0.5">
+                {PLATFORMS.map(pl => (
+                  <button key={pl.id} disabled={supplierLoading} onClick={() => searchPlatform(pl.id)}
+                    className={`h-full rounded px-3 text-[13px] font-medium transition-colors disabled:opacity-50 ${
+                      supplierPlatform === pl.id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
+                    {pl.label}
+                  </button>
+                ))}
+              </div>
+              {creditInfo?.credits_total != null && (
+                <span className="text-[12px] text-muted-foreground tabular-nums">{creditInfo.credits_remaining ?? 0} of {creditInfo.credits_total} credits</span>
+              )}
+            </div>
+            <p className="text-[12px] text-muted-foreground">
+              Matched by product photo. A credit is only used when suppliers are found, and reopening a product you've already checked is free.
+            </p>
+
+            {!supplierPlatform && !supplierLoading && (
+              <div className="rounded-lg border border-dashed border-border py-10 text-center text-[13px] text-muted-foreground">
+                Choose a marketplace to see matching suppliers.
+              </div>
+            )}
+
+            {supplierLoading && (
+              <div className="flex items-center justify-center gap-2 py-10 text-[13px] text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Looking up suppliers…
+              </div>
+            )}
+
+            {supplierError === "upgrade" && (
+              <div className="rounded-lg border border-border p-4 flex items-center justify-between gap-3">
+                <span className="text-[13px]">Supplier lookups are on paid plans.</span>
+                <Link to="/pricing" className="app-btn">See plans</Link>
+              </div>
+            )}
+            {supplierError === "no_credits" && (
+              <div className="rounded-lg border border-border p-4 flex items-center justify-between gap-3">
+                <span className="text-[13px]">
+                  You've used all {creditInfo?.credits_total ?? ""} credits{creditInfo?.period_end ? `. They reset ${new Date(creditInfo.period_end).toLocaleDateString()}` : ""}.
+                </span>
+                <Link to="/pricing" className="app-btn">Upgrade</Link>
+              </div>
+            )}
+            {supplierError && !["upgrade", "no_credits"].includes(supplierError) && (
+              <div className="rounded-lg border border-border bg-muted/40 p-4 text-[13px] text-foreground">{supplierError}</div>
+            )}
+
+            {supplierResults && supplierResults.length > 0 && (
+              <div className="rounded-lg border border-border overflow-hidden">
+                <table className="w-full">
+                  <thead className="border-b border-border bg-muted/40">
+                    <tr>
+                      <th className="app-th">Supplier</th>
+                      <th className="app-th app-num">Unit cost</th>
+                      <th className="app-th app-num">Min order</th>
+                      <th className="app-th app-num">Match</th>
+                      <th className="app-th app-num">Margin</th>
+                      <th className="app-th" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {supplierResults.map((s: any, i: number) => {
+                      const unit = Number(s.unit_cost_min);
+                      const est = Number.isFinite(unit) && unit > 0 && !priceLooksWrong(supplierProduct)
+                        ? calcProfit({ sellingPrice: Number(supplierProduct.tiktok_price), productCost: unit, referralPct: DEFAULT_REFERRAL_PCT, creatorPct: DEFAULT_CREATOR_PCT })
+                        : null;
+                      return (
+                        <tr key={i} className="border-b border-border last:border-0 align-top">
+                          <td className="app-td">
+                            <div className="flex items-center gap-2.5">
+                              {s.image_url && <Thumb src={s.image_url} alt={s.product_title || ""} size={36} />}
+                              <div className="min-w-0">
+                                <div className="line-clamp-1 font-medium text-foreground">{s.supplier_name || s.name || `Supplier ${i + 1}`}</div>
+                                {s.product_title && <div className="line-clamp-1 text-[12px] text-muted-foreground">{s.product_title}</div>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="app-td app-num font-medium text-foreground">{Number.isFinite(unit) && unit > 0 ? `$${unit.toFixed(2)}` : "—"}</td>
+                          <td className="app-td app-num">{s.moq ? Number(s.moq).toLocaleString() : "—"}</td>
+                          <td className="app-td app-num">{s.similarity != null ? `${Math.round(Number(s.similarity) * 100)}%` : "—"}</td>
+                          <td className="app-td app-num">
+                            {est ? (
+                              <>
+                                <span className={est.margin >= 30 ? "app-up font-medium" : est.margin >= 15 ? "text-foreground" : "app-down"}>{est.margin.toFixed(0)}%</span>
+                                <div className="text-[11px] text-muted-foreground">${est.profitPerUnit.toFixed(2)}/unit</div>
+                              </>
+                            ) : "—"}
+                          </td>
+                          <td className="app-td text-right">
+                            {s.supplier_url && (
+                              <a href={s.supplier_url} target="_blank" rel="noopener noreferrer" aria-label="Open supplier"
+                                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground">
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="border-t border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+                  Margin after the 6% TikTok fee and 15% creator commission, before shipping. Order a sample before buying in bulk.
                 </div>
               </div>
-              <button onClick={() => setSelectedProduct(null)} className="text-muted-foreground hover:text-foreground p-2 -mr-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-3 md:gap-4 p-4 md:p-6">
-              {[
-                { label:"Virality Score", icon:<TrendingUp className="h-3 w-3"/>, value:`${selectedProduct.virality_score ?? 0}%`, color:"text-primary", bar:true },
-                { label:"TikTok Price",   icon:<ShoppingCart className="h-3 w-3"/>, value:priceLooksWrong(selectedProduct) ? `$${selectedProduct.tiktok_price ?? "—"} ⚠ under review` : `$${selectedProduct.tiktok_price}`, color:"", bar:false },
-                { label:"GMV 7 Days",     icon:<DollarSign className="h-3 w-3"/>, value:formatCurrency(selectedProduct.gmv_7d), color:"text-green-400", bar:false },
-                { label:"Units Sold 7d",  icon:<ShoppingCart className="h-3 w-3"/>, value:formatNumber(selectedProduct.units_sold_7d), color:"", bar:false },
-                { label:"Video Views",    icon:<Eye className="h-3 w-3"/>, value:selectedProduct.video_views > 0 ? formatNumber(selectedProduct.video_views) : "N/A", color:"text-blue-400", bar:false },
-                { label:"Ad Spend",       icon:<DollarSign className="h-3 w-3"/>, value:adSpendValue(selectedProduct) != null ? formatCurrency(adSpendValue(selectedProduct)!) : "N/A", color:"text-amber-400", bar:false },
-                { label:"Creators",       icon:<Users className="h-3 w-3"/>, value:formatNumber(selectedProduct.creator_count), color:"", bar:false },
-                { label:"Reviews",        icon:<Star className="h-3 w-3"/>, value:formatNumber(selectedProduct.review_count), color:"", bar:false },
-              ].map((m,i) => (
-                <div key={i} className="bg-muted/30 rounded-xl p-3 md:p-4">
-                  <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">{m.icon} {m.label}</div>
-                  <div className={`text-xl md:text-2xl font-bold ${m.color}`}>{m.value}</div>
-                  {m.bar && <div className="w-full h-1.5 rounded-full bg-muted mt-2 overflow-hidden"><div className="h-full rounded-full bg-primary" style={{ width: `${selectedProduct.virality_score}%` }} /></div>}
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col md:flex-row gap-3 px-4 pb-4 md:px-6 md:pb-6">
-              {selectedProduct.tiktok_product_url && (
-                <a href={selectedProduct.tiktok_product_url} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 bg-primary text-primary-foreground rounded-lg py-3 text-sm font-medium text-center hover:opacity-90 min-h-[44px] flex items-center justify-center">
-                  View on TikTok Shop
-                </a>
-              )}
-              <button
-                onClick={() => {
-                  const prod = selectedProduct;
-                  setSelectedProduct(null);
-                  setListProductItem(prod);
-                }}
-                className="flex-1 border border-primary/30 text-primary rounded-lg py-3 text-sm font-medium text-center hover:bg-primary/10 min-h-[44px] flex items-center justify-center gap-2">
-                <ShoppingBag className="h-4 w-4" /> List Product
-              </button>
-              <button className="flex-1 border border-border rounded-lg py-3 text-sm font-medium hover:bg-muted/30 min-h-[44px]"
-                onClick={() => handleFindSupplier(selectedProduct, { stopPropagation: () => {} } as any)}>
-                Find Suppliers
-              </button>
-            </div>
+            )}
+            {supplierResults?.length === 0 && <Empty>No suppliers found.</Empty>}
           </div>
-        </div>
+        </Drawer>
       )}
 
-      {/* ══ IMAGE MODAL ══ */}
-      {imageModal && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setImageModal(null)}>
-          <div
-            className="bg-card border border-border rounded-2xl w-full max-w-md overflow-hidden"
-            onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <p className="text-sm font-medium truncate pr-4">{imageModal.product_name}</p>
-              <button
-                onClick={() => setImageModal(null)}
-                className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0">
-                <X className="h-5 w-5" />
-              </button>
+      {/* ══ SHOP DRAWER ══ */}
+      {selectedShop && (
+        <Drawer onClose={() => setSelectedShop(null)} width={480}>
+          <DrawerHeader onClose={() => setSelectedShop(null)} title={selectedShop.shop_name} sub={selectedShop.seller_type} />
+          <div className="p-5 space-y-5">
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border [&>*]:bg-card">
+              <Stat label="Revenue" value={fmtUsd(selectedShop.gmv_total)} sub={<Delta v={selectedShop.gmv_growth_pct} />} />
+              <Stat label="Items sold" value={fmtNum(selectedShop.product_count ?? selectedShop.item_sold)} />
+              <Stat label="Avg unit price" value={fmtUsd(selectedShop.avg_unit_price)} />
+              <Stat label="Video revenue" value={fmtUsd(selectedShop.video_revenue)} />
+              <Stat label="Live revenue" value={fmtUsd(selectedShop.live_revenue)} />
+              <Stat label="Product card revenue" value={fmtUsd(selectedShop.product_card_revenue)} />
+              <Stat label="Own account revenue" value={fmtUsd(selectedShop.self_operated_revenue)} />
+              <Stat label="Affiliate revenue" value={fmtUsd(selectedShop.affiliate_revenue)} />
             </div>
-            <div className="p-4 space-y-3">
-              <img
-                src={imageModal.thumbnail_url}
-                alt={imageModal.product_name}
-                className="w-full rounded-xl object-contain max-h-[60vh] bg-muted/30"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).alt = "Image not available";
-                }}
-              />
-              {imageModal.tiktok_product_url && (
-                <a
-                  href={imageModal.tiktok_product_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-primary text-primary-foreground rounded-lg py-3 text-sm font-medium text-center hover:opacity-90 min-h-[44px] flex items-center justify-center">
-                  View on TikTok Shop →
-                </a>
-              )}
-            </div>
+            {selectedShop.shop_url && (
+              <a href={selectedShop.shop_url} target="_blank" rel="noopener noreferrer" className="app-btn h-10 w-full">
+                Open shop <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+            )}
           </div>
-        </div>
+        </Drawer>
       )}
 
-      {/* ══ LIST PRODUCT MODAL ══ */}
-      {listProductItem && (
-        <ListProductModal product={listProductItem} onClose={() => setListProductItem(null)} />
-      )}
-
+      {listProductItem && <ListProductModal product={listProductItem} onClose={() => setListProductItem(null)} />}
     </div>
   );
 };

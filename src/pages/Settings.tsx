@@ -19,7 +19,7 @@ const SettingsPage = () => {
         <p className="text-muted-foreground mt-1 text-sm">Manage your account and preferences</p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4 md:p-6 space-y-2">
+      <div className="rounded-lg border border-border bg-card p-4 md:p-6 space-y-2">
         <div className="flex items-center gap-2 mb-3">
           <User className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-base md:text-lg">Account</h2>
@@ -28,7 +28,7 @@ const SettingsPage = () => {
         <div className="text-sm font-medium break-all">{user?.email ?? "—"}</div>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4 md:p-6 space-y-3">
+      <div className="rounded-lg border border-border bg-card p-4 md:p-6 space-y-3">
         <div className="flex items-center gap-2 mb-3">
           <Crown className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-base md:text-lg">Plan</h2>
@@ -41,13 +41,13 @@ const SettingsPage = () => {
             </>
           ) : (
             <span className="text-sm font-medium">
-              {plan === "pro" ? "Pro Plan ✅" : "Ultimate Plan ✅"}
+              {plan === "pro" ? "Pro plan" : "Ultimate plan"}
             </span>
           )}
         </div>
       </div>
 
-      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 md:p-6 space-y-3">
+      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 md:p-6 space-y-3">
         <h2 className="font-semibold text-base md:text-lg text-destructive">Account Actions</h2>
         <Button variant="destructive" size="sm" onClick={signOut} className="gap-1.5 w-full sm:w-auto min-h-[44px]">
           <LogOut className="h-4 w-4" />

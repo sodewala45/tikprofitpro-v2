@@ -142,7 +142,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
       onClick={onClose}
     >
       <div
-        className="bg-card border border-border rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto"
+        className="bg-card border border-border rounded-lg w-full max-w-6xl max-h-[95vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -163,7 +163,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
           {/* ── LEFT COLUMN ── */}
           <div className="space-y-5">
             {/* Product Details Section */}
-            <div className="rounded-xl border border-border bg-background/50 p-4 space-y-4">
+            <div className="rounded-lg border border-border bg-background/50 p-4 space-y-4">
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles className="h-4 w-4 text-primary" />
                 <h3 className="font-semibold text-sm">Product Details</h3>
@@ -248,7 +248,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
                     disabled={generating}
                     className="text-xs text-primary hover:underline disabled:opacity-50 flex items-center gap-1"
                   >
-                    {generating ? "⏳ Generating..." : "✨ Auto-generate with AI"}
+                    {generating ? "Writing…" : "Write description"}
                   </button>
                 </div>
                 <Textarea
@@ -275,7 +275,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
                   One per line — shown as bullet points in preview
                 </p>
                 {missingInfo.length > 0 && (
-                  <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-300">
+                  <div className="mt-2 rounded-md border border-border bg-amber-50 p-2 text-xs text-amber-700">
                     Fill these in before publishing: {missingInfo.join(", ")}
                   </div>
                 )}
@@ -283,7 +283,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
             </div>
 
             {/* Images */}
-            <div className="rounded-xl border border-border bg-background/50 p-4 space-y-3">
+            <div className="rounded-lg border border-border bg-background/50 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <ImagePlus className="h-4 w-4 text-primary" />
                 <h3 className="font-semibold text-sm">
@@ -325,7 +325,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
             </div>
 
             {/* Profit Calculator — moved to left column bottom */}
-            <div className="rounded-xl border border-border bg-background/50 p-4 space-y-3">
+            <div className="rounded-lg border border-border bg-background/50 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-primary" />
                 <h3 className="font-semibold text-sm">Profit Calculator</h3>
@@ -386,13 +386,13 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
                 ))}
                 <div className="border-t border-border pt-2 flex justify-between font-semibold">
                   <span>Net Profit</span>
-                  <span className={profitCalc.net >= 0 ? "text-green-400" : "text-destructive"}>
+                  <span className={profitCalc.net >= 0 ? "text-emerald-700" : "text-destructive"}>
                     ${profitCalc.net.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Margin</span>
-                  <span className={profitCalc.margin >= 0 ? "text-green-400" : "text-destructive"}>
+                  <span className={profitCalc.margin >= 0 ? "text-emerald-700" : "text-destructive"}>
                     {profitCalc.margin.toFixed(1)}%
                   </span>
                 </div>
@@ -403,7 +403,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
           {/* ── RIGHT COLUMN ── */}
           <div className="space-y-5">
             {/* Live Preview */}
-            <div className="rounded-xl border border-border bg-background/50 p-4 space-y-3">
+            <div className="rounded-lg border border-border bg-background/50 p-4 space-y-3">
               <h3 className="font-semibold text-sm">Listing Preview</h3>
               <div className="rounded-lg border border-border bg-card p-4 space-y-3">
                 {images.length > 0 && (
@@ -469,7 +469,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
             </div>
 
             {/* Step-by-Step Guide */}
-            <div className="rounded-xl border border-border bg-background/50 p-4 space-y-3">
+            <div className="rounded-lg border border-border bg-background/50 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <ListChecks className="h-4 w-4 text-primary" />
                 <h3 className="font-semibold text-sm">How to List on TikTok Shop</h3>
