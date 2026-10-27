@@ -55,10 +55,12 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
   const [images, setImages] = useState<string[]>(product.thumbnail_url ? [product.thumbnail_url] : []);
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState("");
   const [missingInfo, setMissingInfo] = useState<string[]>([]);
 
   const generateWithAI = async () => {
     setGenerating(true);
+    setGenError("");
     try {
       // Signed-in call; backend looks at the photo and avoids generic marketing copy.
       const parsed = await api.generateListing({
@@ -74,6 +76,13 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
       if (Array.isArray(parsed.missing_info) && parsed.missing_info.length) setMissingInfo(parsed.missing_info);
     } catch (err) {
       console.error("AI generation failed:", err);
+      const msg = String((err as Error)?.message ?? "");
+      setGenError(
+        msg.includes("insufficient_quota") || msg.includes("credit_balance") || msg.includes("429")
+          ? "AI is temporarily unavailable (AI service balance is empty). Write the description yourself or try later."
+          : msg.includes("Sign in") ? "Please sign in again to use AI writing."
+          : "AI couldn't write this listing right now. Try again in a minute."
+      );
     } finally {
       setGenerating(false);
     }
@@ -259,6 +268,7 @@ const ListProductModal = ({ product, onClose }: ListProductModalProps) => {
                   onChange={(e) => setDescription(e.target.value)}
                   className="mt-1 bg-background"
                 />
+                {genError && <p className="text-xs text-destructive mt-1">{genError}</p>}
               </div>
 
               <div>
