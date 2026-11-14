@@ -67,16 +67,17 @@ const Dashboard = () => {
 
   // Wait for the session so the first request isn't sent signed-out (which returns the free top 10).
   const { user, loading: authLoading } = useAuth();
+  const { plan, isLoading: planLoading } = usePlan();
+  // Plan in the key: the Free top 10 must not be reused once this user is Pro (plans audit 2026-11-14).
   const { data: productsData, isLoading: productsQueryLoading, error: productsError } = useQuery({
-    queryKey: ["dashboard-products", user?.id ?? "anon"],
+    queryKey: ["dashboard-products", user?.id ?? "anon", plan],
     queryFn: () => api.getProducts(),
-    enabled: !authLoading,
+    enabled: !authLoading && !planLoading,
   });
 
   const stats = statsData?.stats ?? {};
   const { checkout, loading: checkoutLoading } = useCheckout();
 
-  const { plan, isLoading: planLoading } = usePlan();
   const statKeys = ["total_products", "hot", "rising", "watch"];
   const productsLoading = authLoading || planLoading || productsQueryLoading;
 

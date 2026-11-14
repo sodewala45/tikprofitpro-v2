@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { safeUrl } from "@/lib/safeUrl";
+import { markCheckoutStarted } from "@/lib/checkoutReturn";
 
 const BASE_URL = "https://api.tikprofitpro.shop";
 
@@ -197,6 +198,9 @@ export const api = {
     if (!checkoutUrl || new URL(checkoutUrl).protocol !== "https:") {
       throw new ApiError(API_MESSAGES.server, { status: 0, kind: "server" });
     }
+    // Every Upgrade path (sidebar, dashboard, Pricing, Signup/Login) ends here: mark it so the app
+    // re-reads the plan on return until the webhook has made the account paid.
+    markCheckoutStarted();
     window.location.href = checkoutUrl;
   },
 };

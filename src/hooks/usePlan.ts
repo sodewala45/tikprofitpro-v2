@@ -5,6 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export type Plan = "free" | "pro" | "ultimate";
 
+/** React Query key prefix for the plan; invalidate it to re-read the plan (e.g. after checkout). */
+export const PLAN_QUERY_KEY = "user-plan";
+
 const asPlan = (raw: unknown): Plan => {
   const p = (raw ?? "free").toString().trim().toLowerCase(); // same as the API's normalize_plan
   return p === "pro" || p === "ultimate" ? (p as Plan) : "free";
@@ -24,7 +27,8 @@ export async function loadPlan(email: string): Promise<{ plan: Plan; billingPlan
       return { plan: asPlan(me.plan), billingPlan: asPlan(me.billing_plan ?? me.plan), admin: !!me.admin };
     }
   } catch { /* old API without /me, or offline: use the stored plan */ }
-  const { data } = await supabase.from("users").select("plan").eq("user_email", email).maybeSingle();
+  // users.user_email is stored lowercased; the auth email may not be.
+  const { data } = await supabase.from("users").select("plan").eq("user_email", email.trim().toLowerCase()).maybeSingle();
   const plan = asPlan(data?.plan);
   return { plan, billingPlan: plan, admin: false };
 }
@@ -32,7 +36,7 @@ export async function loadPlan(email: string): Promise<{ plan: Plan; billingPlan
 export function usePlan() {
   const { user, loading: authLoading } = useAuth();
   const { data, isPending } = useQuery({
-    queryKey: ["user-plan", user?.email],
+    queryKey: [PLAN_QUERY_KEY, user?.email],
     queryFn: () => (user?.email ? loadPlan(user.email) : null),
     enabled: !!user?.email,
     staleTime: 60_000,

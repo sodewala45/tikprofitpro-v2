@@ -8,6 +8,8 @@ import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import VideoModal from "@/components/VideoModal";
 import { loginReturnUrl } from "@/lib/authFlow";
+import { useCheckoutReturn } from "@/hooks/useCheckoutReturn";
+import { usePlan } from "@/hooks/usePlan";
 
 function MobileMenuButton() {
   const { toggleSidebar, isMobile } = useSidebar();
@@ -40,6 +42,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // /credits reports email_confirmed:false for accounts that haven't clicked the confirmation link yet.
   const needsConfirm = !!user && creditsResp?.email_confirmed === false;
   const [resend, setResend] = useState<"idle" | "sending" | "sent">("idle");
+  const checkoutState = useCheckoutReturn();
+  const { label: planLabel } = usePlan();
   const resendConfirm = async () => {
     if (!user?.email) return;
     setResend("sending");
@@ -88,6 +92,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {resend === "sending" ? "Sending…" : "Resend link"}
                 </button>
               )}
+            </div>
+          )}
+          {user && checkoutState === "waiting" && (
+            <div className="flex items-center gap-2 border-b border-border bg-muted px-4 md:px-8 py-2 text-[13px]" role="status">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>Confirming your payment with Lemon Squeezy… your plan updates here in a few seconds.</span>
+            </div>
+          )}
+          {user && checkoutState === "done" && (
+            <div className="border-b border-emerald-200 bg-emerald-50 px-4 md:px-8 py-2 text-[13px] text-emerald-800" role="status">
+              You're on {planLabel}. The full product list and your new credits are unlocked.
+            </div>
+          )}
+          {user && checkoutState === "timeout" && (
+            <div className="border-b border-amber-200 bg-amber-50 px-4 md:px-8 py-2 text-[13px] text-amber-900" role="status">
+              Your payment is still being confirmed. Refresh this page in a minute; if it still says Free, contact support with the email you paid with.
             </div>
           )}
           <main className="flex-1 px-4 py-5 md:px-8 md:py-7 overflow-auto bg-background">

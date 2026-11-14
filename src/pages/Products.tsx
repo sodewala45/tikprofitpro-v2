@@ -238,7 +238,7 @@ const Products = () => {
   const [creatorType, setCreatorType] = useState("all");
 
   const { user, loading: authLoading } = useAuth();
-  const { isFree, isLoading: planLoading } = usePlan();
+  const { plan, isFree, isLoading: planLoading } = usePlan();
   const { data: creditsData } = useQuery({ queryKey: ["credits"], queryFn: () => api.getCredits(), retry: false, enabled: !!user });
 
   useEffect(() => {
@@ -252,8 +252,10 @@ const Products = () => {
   // Wait for the auth session before the first fetch: otherwise the first request goes out
   // signed-out (free top 10) and Pro users see a spinner / "0 products" until a refetch.
   const { data: products = [], isLoading: productsLoading, error } = useQuery({
-    queryKey: ["products-list", user?.id ?? "anon", activeSearch],
-    enabled: !authLoading,
+    // The plan is part of the key: a list fetched while Free (top 10) must not be reused for 5 minutes
+    // once the same user is Pro (plans audit 2026-11-14).
+    queryKey: ["products-list", user?.id ?? "anon", plan, activeSearch],
+    enabled: !authLoading && !planLoading,
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     retry: (count, err) => count < 1 && !(isApiError(err) && ["auth", "upgrade", "forbidden", "rate_limit"].includes(err.kind)),
@@ -263,7 +265,7 @@ const Products = () => {
       return fetchAllProducts((p) => api.getProducts(p), () => api.getStats());
     },
   });
-  const isLoading = authLoading || productsLoading;
+  const isLoading = authLoading || planLoading || productsLoading;
 
   useEffect(() => { setCurrentPage(1); }, [debouncedSearch, added, stage, sort, dir]);
 
